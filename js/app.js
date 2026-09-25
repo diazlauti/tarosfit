@@ -9,6 +9,7 @@ var I_UP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-widt
 var I_DOWN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>';
 var I_FLAME='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1 3-3 4.5-3 8a3 3 0 0 0 6 0c0-1.2-.7-2-.7-2 1.7 1 2.7 2.8 2.7 4.5a5 5 0 0 1-10 0C7 9 10 7 12 3z"/></svg>';
 var I_REFRESH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg>';
+var I_GEAR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg>';
 
 /* rutina base: cada ejercicio referencia una clave de EXDB */
 var SEED=[
@@ -24,7 +25,7 @@ var SEED=[
 
 var S={days:[],sessions:[],tab:"hoy",ui:{},work:null,workDate:null,gi:0,
   progEx:null,openS:null,summary:null,expandDay:null,pickOpen:false,swapOpen:null,editSetsFor:null,
-  groupId:null,groupBoard:null,groupBusy:false,settingsOpen:false,
+  groupId:null,groupBoard:null,groupBusy:false,settingsOpen:false,showTips:false,
   timer:{total:90,left:90,run:false,iv:null,endAt:0}};
 var pending=null;
 
@@ -260,6 +261,7 @@ function rHoy(){
   var h=needsUpdate()?updateBanner():"";
   var streak=weekStreak();
   if(streak>0)h+='<div class="streak-pill">'+I_FLAME+' '+streak+(streak===1?" semana seguida entrenando":" semanas seguidas entrenando")+'</div>';
+  h+=groupTeaser();
   h+='<div class="next-up"><div class="eyebrow">te toca</div>'+
     '<div class="name">'+esc(day.name)+'</div>'+
     '<div class="why">'+(lo?"último entrenamiento: "+daysAgoLabel(lo.date)+" ("+shortWk(lo.date)+")":"tu primer entrenamiento")+'</div></div>';
@@ -547,9 +549,16 @@ function chart(pts,mx){
 function rRutinas(){
   var nd=nextDay();
   var h=needsUpdate()?updateBanner():"";
-  h+='<p class="today-line">Hoy es '+wkName()+'. Acá editás las rutinas; la de hoy se muestra sola en la pestaña Hoy.</p>';
+  h+='<p class="today-line">Hoy es '+wkName()+'. Acá editás las rutinas; la de hoy se muestra sola en la pestaña Hoy. '+
+    '<button class="linkbtn" style="font-size:12.5px" data-a="toggle-tips">¿cómo funciona?</button></p>';
+  if(S.showTips){
+    h+='<div class="card" style="background:transparent;box-shadow:none;border:1px dashed var(--line)">'+
+      '<p style="font-size:12.5px;color:var(--ink-soft);line-height:1.6;margin:0">'+
+      '<strong>La rueda:</strong> no importa el día de la semana ni cuántas veces vayas. Hacés la que dice «te toca» y sigue sola: A → B → C → A…<br><br>'+
+      '<strong>Esfuerzo:</strong> dejá 1-2 repeticiones en reserva en todo lo pesado. Al fallo solo en la última serie de aislamiento (curl, laterales, tríceps, gemelos).<br><br>'+
+      '<strong>Progresión:</strong> si completás todas las series en el tope del rango y te sobran 2 reps, subís 2,5kg arriba o 5kg en piernas.</p></div>';
+  }
   h+='<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">'+
-    '<button class="btn sm ghost" data-a="wizard-open">cuestionario</button>'+
     '<button class="btn sm" data-a="new-day">+ rutina</button></div>';
   if(S.ui.newDay){
     h+='<div class="card"><div class="frow"><input type="text" id="i-day" class="f2" placeholder="nombre de la rutina"></div>'+
@@ -628,19 +637,17 @@ function rRutinas(){
     h+='</div>';
   });
   if(S.days.length){
-    h+='<div class="card" style="background:transparent;box-shadow:none;border:1px dashed var(--line)">'+
-      '<p style="font-size:12.5px;color:var(--ink-soft);line-height:1.6;margin:0">'+
-      '<strong>La rueda:</strong> no importa el día de la semana ni cuántas veces vayas. Hacés la que dice «te toca» y sigue sola: A → B → C → A…<br><br>'+
-      '<strong>Esfuerzo:</strong> dejá 1-2 repeticiones en reserva en todo lo pesado. Al fallo solo en la última serie de aislamiento (curl, laterales, tríceps, gemelos).<br><br>'+
-      '<strong>Progresión:</strong> si completás todas las series en el tope del rango y te sobran 2 reps, subís 2,5kg arriba o 5kg en piernas.</p></div>';
-
-    h+='<div class="card" style="margin-top:14px">'+
-      '<div class="day-collapsed" data-a="toggle-settings"><div><h3 style="font-size:15px">Cuenta, grupo y copia de seguridad</h3></div>'+
+    h+='<div class="card" style="margin-top:4px">'+
+      '<div class="day-collapsed" data-a="toggle-settings">'+
+      '<div style="display:flex;align-items:center;gap:8px"><span class="cfg-ico">'+I_GEAR+'</span><h3 style="font-size:15px">Configuración</h3></div>'+
       '<span class="chev">'+(S.settingsOpen?I_UP:I_DOWN)+'</span></div>';
     if(S.settingsOpen){
       h+='<div class="settings-sec"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 6px">'+
         'Conectado como <strong>'+esc(window.AppUserEmail||"")+'</strong>. Tu rutina e historial se sincronizan solos entre tus dispositivos.</p>'+
         '<button class="btn sm ghost" data-a="signout">Cerrar sesión</button></div>';
+      h+='<div class="settings-sec"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
+        '¿Cambió algo (objetivo, días, molestias)? Podés armar una rutina nueva con el cuestionario.</p>'+
+        '<button class="btn sm ghost" data-a="wizard-open">Rehacer el cuestionario</button></div>';
       h+='<div class="settings-sec">'+rGrupo()+'</div>';
       h+='<div class="settings-sec"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
         'Copia de seguridad de tu rutina y tu historial — por si algún día querés pasarla a mano, o como respaldo extra además de la nube.</p>'+
@@ -653,6 +660,28 @@ function rRutinas(){
     h+='</div>';
   }
   el("v-rutinas").innerHTML=h;
+}
+
+/* adelanto del grupo en la pestaña Hoy, para incentivar a usarlo sin
+   tener que ir a buscarlo a Configuración */
+function groupTeaser(){
+  if(!S.groupId){
+    return '<div class="card" style="margin-bottom:12px">'+
+      '<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 8px">'+
+      'Comparate con amigos: racha, entrenamientos de la semana y tus mejores marcas.</p>'+
+      '<button class="btn sm ghost" data-a="settings-open-group">Crear o unirme a un grupo</button></div>';
+  }
+  if(!S.groupBoard||!S.groupBoard.length)return '';
+  var h='<div class="card" style="margin-bottom:12px">'+
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'+
+    '<p style="font-size:12.5px;color:var(--ink-soft);margin:0">Tu grupo</p>'+
+    '<button class="linkbtn" style="font-size:12px" data-a="settings-open-group">ver todo</button></div>'+
+    '<div class="group-board">';
+  S.groupBoard.slice(0,3).forEach(function(m){
+    h+='<div class="group-row"><div class="gr-top"><span class="gr-name">'+esc(m.name||"Alguien")+'</span>'+
+      '<span class="gr-streak">'+(m.streak||0)+(m.streak===1?" semana":" semanas")+'</span></div></div>';
+  });
+  return h+'</div></div>';
 }
 
 function rGrupo(){
@@ -807,6 +836,8 @@ document.addEventListener("click",function(ev){
     var ni=uid();S.days.push({id:ni,name:n,ex:[]});S.ui={};S.expandDay=ni;saveDays();render();toast("rutina creada")}
   else if(a==="toggle-day"){S.expandDay=(S.expandDay===d?null:d);render()}
   else if(a==="toggle-settings"){S.settingsOpen=!S.settingsOpen;render()}
+  else if(a==="toggle-tips"){S.showTips=!S.showTips;render()}
+  else if(a==="settings-open-group"){S.settingsOpen=true;go("rutinas")}
   else if(a==="edit-day"){S.ui={editDay:d};render();focus("i-dayname")}
   else if(a==="x-editday"){S.ui={};render()}
   else if(a==="save-dayname"){var nn=val("i-dayname");if(!nn){toast("no puede quedar vacío");return}
