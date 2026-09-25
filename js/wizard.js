@@ -31,6 +31,19 @@ var PRIORITY={
   core:["plancha","abdominales","rueda-abdominal"]
 };
 
+/* misma idea, pero solo calistenia: sin pesas ni máquinas */
+var HOME_PRIORITY={
+  cuadriceps:["sentadilla-salto","zancadas-caminando","sentadilla-pared"],
+  isquios:["puente-gluteo","puente-unipodal","peso-muerto-pierna"],
+  pecho:["flexiones","flexiones-inclinadas"],
+  espalda:["dominadas","remo-invertido","superman"],
+  hombro:["flexiones-pike","flexiones-pike-elevado"],
+  brazos:["flexiones-diamante","fondos-banco","dominadas-supinas"],
+  gemelos:["elevacion-talones","elevacion-talones-unipodal"],
+  core:["plancha","escaladores","elevacion-piernas"]
+};
+var currentHome=false; // contexto de buildRoutine(): true = solo calistenia
+
 /* qué grupos entran cuando el usuario elige reforzar uno en particular */
 var FOCUS_MAP={pecho:["pecho"],espalda:["espalda"],piernas:["cuadriceps","isquios"],hombro:["hombro"],brazos:["brazos"]};
 function focusGroups(ans){return FOCUS_MAP[ans.focus]||[]}
@@ -39,15 +52,15 @@ function focusGroups(ans){return FOCUS_MAP[ans.focus]||[]}
    del mismo grupo. Esto no reemplaza el consejo de un profesional: solo
    baja el riesgo saltando la variante más exigente para esa zona. */
 var CARE={
-  rodillas:["bulgara","zancadas","sentadilla"],
-  espalda:["peso-muerto","peso-muerto-rumano","remo-barra","sentadilla"],
-  hombros:["press-militar","fondos"]
+  rodillas:["bulgara","zancadas","sentadilla","sentadilla-salto","zancadas-caminando"],
+  espalda:["peso-muerto","peso-muerto-rumano","remo-barra","sentadilla","superman","peso-muerto-pierna"],
+  hombros:["press-militar","fondos","flexiones-pike-elevado"]
 };
 
 function poolFor(group,limits){
   var excl=[];
   limits.forEach(function(l){(CARE[l]||[]).forEach(function(k){excl.push(k)})});
-  var order=(PRIORITY[group]||[]).filter(function(k){return EXDB[k]});
+  var order=((currentHome?HOME_PRIORITY:PRIORITY)[group]||[]).filter(function(k){return EXDB[k]});
   var pool=order.filter(function(k){return excl.indexOf(k)===-1});
   return pool.length?pool:order;
 }
@@ -100,6 +113,7 @@ function partDay(name,groups,limits,offset,sr,perGroup){
 }
 
 function buildRoutine(ans){
+  currentHome=ans.home==="casa";
   var sr=setsRepsFor(ans.goal,ans.level),lim=ans.limits||[],focus=focusGroups(ans);
   if(ans.days===2)return[
     fullBodyDay("Rutina A",lim,0,sr,focus),
@@ -128,6 +142,11 @@ function buildRoutine(ans){
 
 /* ---------- preguntas ---------- */
 var STEPS=[
+ {key:"home",type:"single",q:"¿Dónde vas a entrenar?",
+  opts:[
+   {v:"gym",l:"Gimnasio",d:"Con pesas, máquinas y barras"},
+   {v:"casa",l:"En casa, sin equipamiento",d:"Calistenia: solo con tu propio peso"}
+  ]},
  {key:"goal",type:"single",q:"¿Cuál es tu objetivo principal?",
   opts:[
    {v:"hipertrofia",l:"Ganar músculo",d:"Más series, de 8 a 12 repeticiones"},
@@ -170,7 +189,7 @@ var GEN_STEPS=["Elegimos el tipo de rutina","Calculamos series y repeticiones","
 var GEN_MS=1150;
 
 var ans,idx,draft;
-function reset(){ans={goal:null,level:null,days:null,focus:null,limits:[]};idx=0;draft=null}
+function reset(){ans={home:null,goal:null,level:null,days:null,focus:null,limits:[]};idx=0;draft=null}
 
 function labelFor(stepKey,v){
   var st=STEPS.filter(function(s){return s.key===stepKey})[0];
@@ -179,7 +198,8 @@ function labelFor(stepKey,v){
 }
 
 function summaryLine(){
-  var bits=[labelFor("goal",ans.goal)+", nivel "+labelFor("level",ans.level).toLowerCase(),
+  var bits=[labelFor("home",ans.home).toLowerCase()+", "+labelFor("goal",ans.goal).toLowerCase()+
+    ", nivel "+labelFor("level",ans.level).toLowerCase(),
     ans.days+" días por semana"];
   if(ans.focus&&ans.focus!=="ninguno")bits.push("prioridad en "+labelFor("focus",ans.focus).toLowerCase());
   if(ans.limits.length)bits.push("sin ejercicios de riesgo para "+ans.limits.map(function(l){return labelFor("limits",l).toLowerCase()}).join(" y "));
@@ -290,7 +310,7 @@ document.addEventListener("click",function(ev){
       render();
     }else toast("no hay otro ejercicio de ese grupo para elegir");
   }
-  else if(w==="skip"){finish({goal:"hipertrofia",level:"intermedio",days:3,focus:"ninguno",limits:[]})}
+  else if(w==="skip"){finish({home:"gym",goal:"hipertrofia",level:"intermedio",days:3,focus:"ninguno",limits:[]})}
   else if(w==="gen"){applyDays(draft||buildRoutine(ans))}
 });
 

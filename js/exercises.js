@@ -38,7 +38,7 @@ var EXDB={
  tips:["Rotar la muñeca al subir. En este el agarre no cambia nunca.","Usar los hombros para arrancar el movimiento.","Soltar el peso en la bajada en vez de controlarlo."],
  img:["img/curl-martillo-0.jpg",
       "img/curl-martillo-1.jpg"]},
-"dominadas":{n:"Dominadas",g:"espalda",
+"dominadas":{n:"Dominadas",g:"espalda",home:true,
  cue:"Agarre un poco más ancho que los hombros. Subí llevando el pecho a la barra, no el mentón.",
  tips:["Balancearse para subir. Si no te salen limpias, usá la asistida.","Rango parcial: bajá hasta estirar casi del todo cada rep.","Encoger los hombros al colgarte. Activá la espalda antes de subir."],
  img:["img/dominadas-0.jpg",
@@ -98,7 +98,7 @@ var EXDB={
  tips:["Convertirlo en sentadilla doblando las rodillas. Es movimiento de cadera.","Redondear la espalda baja al bajar. Parás donde tu flexibilidad llegue.","Alejar la barra del cuerpo. Tiene que ir rozándote el muslo."],
  img:["img/peso-muerto-rumano-0.jpg",
       "img/peso-muerto-rumano-1.jpg"]},
-"plancha":{n:"Plancha",g:"core",unit:"time",
+"plancha":{n:"Plancha",g:"core",unit:"time",home:true,
  cue:"Antebrazos y punta de pies. Cuerpo en una línea recta de la cabeza a los talones.",
  tips:["Cadera alta en posición de carpa. Bajala hasta alinearla con los hombros.","Cadera hundida, que te carga la lumbar. Apretá glúteos y meté la pelvis.","Aguantar la respiración. Respirá tranquilo todo el tiempo."],
  img:["img/plancha-0.jpg",
@@ -173,7 +173,73 @@ var EXDB={
  tips:["Paso corto: te carga la rodilla en vez del glúteo y el cuádriceps.","Inclinar el torso adelante. Mantenelo vertical, mirada al frente.","Rebotar la rodilla contra el piso. Frená un dedo antes de tocar."],
  img:["img/zancadas-0.jpg",
       "img/zancadas-1.jpg"]},
+
+/* ---- calistenia / en casa, sin equipamiento ---- */
+"sentadilla-salto":{n:"Sentadilla con salto",g:"cuadriceps",home:true,
+ cue:"Bajá como una sentadilla normal y explotá hacia arriba saltando. Amortiguá la caída doblando las rodillas.",
+ tips:["Aterrizar con las piernas rectas. Absorbé el impacto flexionando cadera y rodilla.","Bajar poco antes de saltar. Buscá el mismo rango que en una sentadilla normal.","Mirar hacia abajo al saltar. La vista al frente ayuda a mantener el equilibrio."]},
+"zancadas-caminando":{n:"Zancadas caminando",g:"cuadriceps",home:true,
+ cue:"Dar un paso largo al frente y bajar hasta que ambas rodillas queden casi a 90°. Empujá con la pierna de adelante para seguir caminando.",
+ tips:["Pasos muy cortos: no llegás a trabajar el glúteo. Dá un paso bien largo.","La rodilla de adelante se va muy adelante del pie. Frenala en línea con el tobillo.","Perder el torso erguido. Pecho arriba todo el recorrido."]},
+"sentadilla-pared":{n:"Sentadilla en la pared",g:"cuadriceps",home:true,unit:"time",
+ cue:"Espalda apoyada contra la pared, bajá hasta que las rodillas queden a 90° y sostené ahí.",
+ tips:["Rodillas más adelante que los tobillos. Ajustá los pies más lejos de la pared.","Aflojar la panza. Mantené el core apretado todo el tiempo.","Aguantar la respiración. Respirá tranquilo mientras sostenés."]},
+"puente-gluteo":{n:"Puente de glúteo",g:"isquios",home:true,
+ cue:"Acostado, pies apoyados y rodillas dobladas. Subí la cadera apretando el glúteo hasta quedar en línea con rodillas y hombros.",
+ tips:["Empujar con la lumbar en vez del glúteo. Apretá bien la cola arriba.","Rango corto. Subí hasta el final y frená un segundo.","Pies muy cerca o muy lejos: buscá que la rodilla quede a 90° arriba."]},
+"puente-unipodal":{n:"Puente de glúteo a una pierna",g:"isquios",home:true,
+ cue:"Igual que el puente de glúteo pero con una pierna estirada en el aire. Subí la cadera apoyando solo el pie que queda en el piso.",
+ tips:["Rotar la cadera hacia el costado. Mantené las caderas parejas todo el movimiento.","Usar de más la zona lumbar para empujar. El glúteo es el que empuja.","Bajar de golpe. Controlá la bajada tanto como la subida."]},
+"peso-muerto-pierna":{n:"Peso muerto a una pierna",g:"isquios",home:true,
+ cue:"Parado en una pierna, llevá el torso adelante y la otra pierna atrás en línea recta, como una balanza. Bajá hasta sentir el isquio y volvé.",
+ tips:["Rotar la cadera al bajar. Mantené caderas y hombros paralelos al piso.","Doblar mucho la rodilla de apoyo. Dejala casi estirada, el movimiento es de cadera.","Perder el equilibrio por ir muy rápido. Bajá despacio y controlado."]},
+"flexiones":{n:"Flexiones de brazos",g:"pecho",home:true,
+ cue:"Manos un poco más anchas que los hombros, cuerpo en línea recta. Bajá hasta que el pecho casi toque el piso y empujá.",
+ tips:["Cadera hundida o muy alta. Mantené el cuerpo en una línea recta de la cabeza a los talones.","Codos totalmente abiertos a los costados. Llevalos a unos 45° del torso.","Bajar solo la mitad. Buscá tocar casi el piso con el pecho."]},
+"flexiones-inclinadas":{n:"Flexiones inclinadas",g:"pecho",home:true,
+ cue:"Manos apoyadas en una superficie elevada (banco, silla, escalón). Mismo movimiento que la flexión normal, pero más fácil por el ángulo.",
+ tips:["Usar una superficie muy alta y no sentir esfuerzo. Bajá la altura a medida que mejorás.","Cadera hundida. El cuerpo sigue en línea recta, solo cambia el ángulo.","Manos demasiado separadas. Un poco más anchas que los hombros alcanza."]},
+"flexiones-diamante":{n:"Flexiones diamante",g:"brazos",home:true,
+ cue:"Manos juntas debajo del pecho formando un diamante con los dedos. Bajá controlado, el tríceps hace todo el trabajo.",
+ tips:["Abrir los codos hacia los costados. Mantenelos pegados al cuerpo todo el recorrido.","Si no te salen ninguna, hacelas apoyando las rodillas en el piso.","Bajar de golpe. Controlá los 2 segundos de descenso como en cualquier flexión."]},
+"fondos-banco":{n:"Fondos en banco",g:"brazos",home:true,
+ cue:"Manos en el borde de un banco o silla, piernas estiradas al frente. Bajá flexionando los codos hasta 90° y empujá para subir.",
+ tips:["Bajar demasiado y cargar el hombro. Pará cuando el codo llegue a 90°.","Alejar mucho los pies: si es muy fácil, estiralos más; si es muy difícil, doblá las rodillas.","Encoger los hombros hacia las orejas. Mantenelos abajo y atrás."]},
+"dominadas-supinas":{n:"Dominadas supinas",g:"brazos",home:true,
+ cue:"Agarre con las palmas mirando hacia vos, un poco más angosto que los hombros. Subí llevando el pecho a la barra.",
+ tips:["Balancearse para ayudarse. Si no salen limpias, usá una banda elástica de asistencia.","Rango parcial. Bajá hasta estirar casi del todo cada rep.","Tirar solo con el brazo. Empezá el jalón llevando el codo hacia abajo y atrás."]},
+"remo-invertido":{n:"Remo invertido",g:"espalda",home:true,
+ cue:"Acostado debajo de una mesa firme o agarrado de una toalla en la puerta, cuerpo recto. Tirá el pecho hacia arriba juntando los omóplatos.",
+ tips:["Cadera caída. Mantené el cuerpo en línea recta como en una plancha.","Tirar solo con los brazos. Iniciá el movimiento juntando los omóplatos.","Muy fácil o muy difícil: ajustá el ángulo de tu cuerpo (más parado = más fácil)."]},
+"superman":{n:"Superman",g:"espalda",home:true,
+ cue:"Boca abajo, brazos y piernas estirados. Levantá pecho y piernas del piso al mismo tiempo y sostené un segundo arriba.",
+ tips:["Levantar solo con el cuello. La fuerza sale de la espalda baja, no de mirar para arriba.","Ir muy rápido. Subí controlado y sostené arriba antes de bajar.","Levantar de más y sentir pinches. Un rango chico y controlado alcanza."]},
+"flexiones-pike":{n:"Flexiones pike",g:"hombro",home:true,
+ cue:"En posición de V invertida (cadera bien arriba), bajá la cabeza hacia el piso entre las manos y empujá de vuelta.",
+ tips:["Cadera baja: eso ya es una flexión normal. Mantenela bien arriba, como una V.","Manos muy separadas. Ponelas casi al ancho de los hombros para más presión en el hombro.","Bajar muy poco. Buscá acercar la cabeza al piso todo lo que puedas controlado."]},
+"flexiones-pike-elevado":{n:"Flexiones pike con pies elevados",g:"hombro",home:true,
+ cue:"Igual que la flexión pike, pero con los pies apoyados en un banco o escalón para aumentar el ángulo y la carga en el hombro.",
+ tips:["Elevar demasiado los pies de entrada. Subí la altura de a poco a medida que mejorás.","Perder la posición de V y caer en flexión normal. Mantené la cadera arriba.","Apoyar la cabeza en el piso de golpe. Controlá la bajada."]},
+"elevacion-talones":{n:"Elevación de talones de pie",g:"gemelos",home:true,
+ cue:"De pie, subí lo más alto posible en la punta de los pies y bajá controlado estirando bien el talón.",
+ tips:["Rebotar en vez de controlar. Frená un segundo arriba antes de bajar.","Rango corto. Bajá el talón todo lo que puedas, aunque sea en el piso plano.","Ir muy rápido. Un segundo arriba, dos abajo."]},
+"elevacion-talones-unipodal":{n:"Elevación de talones a una pierna",g:"gemelos",home:true,
+ cue:"Igual que la elevación de talones pero en una sola pierna, sosteniéndote de algo si hace falta equilibrio.",
+ tips:["Usar mucho la mano de apoyo para empujar. Que sea solo para el equilibrio.","Rango corto otra vez: el error más común en gemelos. Bajá bien el talón.","Hacer siempre la misma pierna primero. Alterná para no descompensar."]},
+"escaladores":{n:"Escaladores",g:"core",home:true,
+ cue:"En posición de plancha alta, llevá una rodilla al pecho y después la otra, alternando rápido como corriendo en el lugar.",
+ tips:["Subir mucho la cadera. Mantenela a la altura de los hombros, como en una plancha.","Dar pasos muy cortos. Llevá la rodilla bien hacia el pecho cada vez.","Perder el apoyo de las manos. Mantenelas fijas debajo de los hombros."]},
+"elevacion-piernas":{n:"Elevación de piernas",g:"core",home:true,
+ cue:"Acostado boca arriba, piernas estiradas. Subilas hasta 90° sin doblar las rodillas y bajá controlado sin tocar el piso.",
+ tips:["Arquear la espalda baja al bajar las piernas. Pegá la lumbar al piso todo el tiempo.","Usar impulso. Bajá despacio, ahí está el trabajo real.","Doblar mucho las rodillas. Mantenelas lo más estiradas que puedas."]},
 };
-/* alternativas del mismo grupo, para cuando la máquina está ocupada */
-function alternativas(key){var g=EXDB[key]&&EXDB[key].g;if(!g)return[];
-  return Object.keys(EXDB).filter(function(k){return k!==key&&EXDB[k].g===g});}
+/* alternativas del mismo grupo: si el ejercicio es de calistenia, solo
+   ofrece otros de calistenia (para no sugerir algo que necesite equipo
+   que no tenés en casa); si es de gimnasio, ofrece cualquiera del grupo */
+function alternativas(key){
+  var ex=EXDB[key],g=ex&&ex.g;if(!g)return[];
+  var home=!!ex.home;
+  return Object.keys(EXDB).filter(function(k){
+    return k!==key&&EXDB[k].g===g&&(!home||EXDB[k].home);
+  });
+}
