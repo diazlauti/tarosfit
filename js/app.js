@@ -8,6 +8,7 @@ var I_SWAP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 var I_UP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
 var I_DOWN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>';
 var I_FLAME='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1 3-3 4.5-3 8a3 3 0 0 0 6 0c0-1.2-.7-2-.7-2 1.7 1 2.7 2.8 2.7 4.5a5 5 0 0 1-10 0C7 9 10 7 12 3z"/></svg>';
+var I_REFRESH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg>';
 
 /* rutina base: cada ejercicio referencia una clave de EXDB */
 var SEED=[
@@ -23,6 +24,7 @@ var SEED=[
 
 var S={days:[],sessions:[],tab:"hoy",ui:{},work:null,workDate:null,gi:0,
   progEx:null,openS:null,summary:null,expandDay:null,pickOpen:false,swapOpen:null,editSetsFor:null,
+  groupId:null,groupBoard:null,groupBusy:false,
   timer:{total:90,left:90,run:false,iv:null,endAt:0}};
 var pending=null;
 
@@ -75,8 +77,14 @@ function pushCloud(){
   if(!cloudUid||!cloudReady||!window.firebase)return;
   try{
     firebase.firestore().collection("users").doc(cloudUid).set(
-      {days:S.days,sessions:S.sessions,updatedAt:new Date().toISOString()},{merge:true}
+      {days:S.days,sessions:S.sessions,groupId:S.groupId||null,updatedAt:new Date().toISOString()},{merge:true}
     ).catch(function(){});
+    if(S.groupId){
+      firebase.firestore().collection("groups").doc(S.groupId).collection("members").doc(cloudUid).set(
+        {name:window.AppUserName||window.AppUserEmail||"Alguien",streak:weekStreak(),
+         weekSessions:weekSessionsCount(),updatedAt:new Date().toISOString()},{merge:true}
+      ).catch(function(){});
+    }
   }catch(e){}
 }
 /* devuelve una promesa<boolean>: true si había datos reales en la nube
@@ -93,10 +101,12 @@ function attachCloud(uid){
       var had=Array.isArray(d.days)&&d.days.length>0;
       if(Array.isArray(d.days))S.days=d.days;
       if(Array.isArray(d.sessions))S.sessions=d.sessions;
+      if(typeof d.groupId==="string"&&d.groupId)S.groupId=d.groupId;
       /* solo cachear en local, sin volver a empujar a la nube lo que
          acabamos de leer de ahí mismo: cloudReady se marca recién después */
       Store.set("gym-days",S.days);Store.set("gym-sessions",S.sessions);
       cloudReady=true;
+      if(S.groupId)refreshBoard();
       return had;
     }).catch(function(){cloudReady=true;return false});
   }catch(e){cloudReady=true;return Promise.resolve(false)}
@@ -171,6 +181,26 @@ function weekStreak(){
     streak++;
   }
   return streak;
+}
+function weekSessionsCount(){
+  if(!S.sessions.length)return 0;
+  var today=Math.floor(Date.now()/86400000);
+  return S.sessions.filter(function(s){return Math.floor(new Date(s.date).getTime()/86400000)>=today-6}).length;
+}
+
+/* ---------- grupos con amigos ---------- */
+var GROUP_ALPHABET="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sin O/0 ni I/1, para que no se confundan al escribirlo
+function genCode(){var s="";for(var i=0;i<6;i++)s+=GROUP_ALPHABET[Math.floor(Math.random()*GROUP_ALPHABET.length)];return s}
+function setGroup(code){S.groupId=code;S.groupBoard=null;pushCloud();refreshBoard()}
+function leaveGroup(){S.groupId=null;S.groupBoard=null;pushCloud();render()}
+function refreshBoard(){
+  if(!S.groupId||!window.firebase){render();return}
+  S.groupBusy=true;render();
+  firebase.firestore().collection("groups").doc(S.groupId).collection("members").get().then(function(qs){
+    var arr=[];qs.forEach(function(doc){arr.push(doc.data())});
+    arr.sort(function(a,b){return (b.streak||0)-(a.streak||0)||(b.weekSessions||0)-(a.weekSessions||0)});
+    S.groupBoard=arr;S.groupBusy=false;render();
+  }).catch(function(){S.groupBusy=false;render();toast("no se pudo cargar el grupo")});
 }
 
 /* ---------- navegación ---------- */
@@ -594,6 +624,7 @@ function rRutinas(){
     h+='<div class="card" style="margin-top:14px"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 6px">'+
       'Conectado como <strong>'+esc(window.AppUserEmail||"")+'</strong>. Tu rutina e historial se sincronizan solos entre tus dispositivos.</p>'+
       '<button class="btn sm ghost" data-a="signout">Cerrar sesión</button></div>';
+    h+=rGrupo();
     h+='<div class="card" style="margin-top:14px"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
       'Copia de seguridad de tu rutina y tu historial — por si algún día querés pasarla a mano, o como respaldo extra además de la nube.</p>'+
       '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
@@ -603,6 +634,43 @@ function rRutinas(){
     h+='<div style="text-align:center;margin-top:10px"><button class="ib" style="font-size:12px;color:var(--ink-faint);min-width:auto;padding:6px 10px" data-a="ask-reset">Borrar todos los datos</button></div>';
   }
   el("v-rutinas").innerHTML=h;
+}
+
+function rGrupo(){
+  var h='<div class="card" style="margin-top:14px">';
+  if(!S.groupId){
+    h+='<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
+      'Comparen constancia con amigos: quien crea un grupo comparte el código, y quien lo tenga se une.</p>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+      '<button class="btn sm ghost" data-a="group-create">Crear grupo</button>'+
+      '<button class="btn sm ghost" data-a="group-join-open">Unirme con código</button></div>';
+    if(S.ui.groupJoin){
+      h+='<div class="frow" style="margin-top:10px">'+
+        '<input type="text" id="i-groupcode" class="f2" placeholder="Código (ej. AB12CD)" maxlength="6" style="text-transform:uppercase"></div>'+
+        '<div class="actrow"><button class="btn sm" data-a="group-join-submit">Unirme</button>'+
+        '<button class="btn sm ghost" data-a="group-join-cancel">Cancelar</button></div>';
+    }
+  }else{
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
+      '<p style="font-size:12.5px;color:var(--ink-soft);margin:0">Tu grupo</p>'+
+      '<button class="ib" data-a="group-refresh" aria-label="Actualizar">'+I_REFRESH+'</button></div>'+
+      '<p style="margin:0 0 12px"><span id="group-code" class="tg" style="font-size:14.5px;letter-spacing:.06em">'+esc(S.groupId)+'</span> '+
+      '<button class="linkbtn" data-a="group-copy">copiar código</button></p>';
+    if(S.groupBusy&&!S.groupBoard){
+      h+='<p style="font-size:12.5px;color:var(--ink-faint)">cargando…</p>';
+    }else if(S.groupBoard&&S.groupBoard.length){
+      h+='<div class="prevlist">';
+      S.groupBoard.forEach(function(m){
+        h+='<div class="r"><span>'+esc(m.name||"Alguien")+'</span><span class="t">'+
+          (m.streak||0)+(m.streak===1?" semana":" semanas")+' · '+(m.weekSessions||0)+' esta semana</span></div>';
+      });
+      h+='</div>';
+    }else{
+      h+='<p style="font-size:12.5px;color:var(--ink-faint)">Todavía nadie más se unió. Compartí el código.</p>';
+    }
+    h+='<div style="margin-top:10px"><button class="btn sm ghost" data-a="group-leave">Salir del grupo</button></div>';
+  }
+  return h+'</div>';
 }
 
 /* ---------- modal ---------- */
@@ -744,6 +812,19 @@ document.addEventListener("click",function(ev){
   else if(a==="ask-reset"){ask("Borrar todos los datos","Se elimina tu rutina y todo el historial de este teléfono y de tu cuenta en la nube. No se puede deshacer.",function(){
     S.days=[];S.sessions=[];S.work=null;S.summary=null;S.ui={};S.expandDay=null;
     saveDays();saveSess();clearDraft();render();toast("datos borrados")})}
+  else if(a==="group-create"){setGroup(genCode());toast("grupo creado")}
+  else if(a==="group-join-open"){S.ui={groupJoin:true};render();focus("i-groupcode")}
+  else if(a==="group-join-cancel"){S.ui={};render()}
+  else if(a==="group-join-submit"){
+    var code=val("i-groupcode").toUpperCase().replace(/[^A-Z0-9]/g,"");
+    if(!code){toast("escribí un código");return}
+    S.ui={};setGroup(code);toast("te uniste al grupo")}
+  else if(a==="group-refresh"){refreshBoard()}
+  else if(a==="group-copy"){
+    try{navigator.clipboard.writeText(S.groupId).then(function(){toast("código copiado")})}
+    catch(e){toast("tu código es "+S.groupId)}}
+  else if(a==="group-leave"){ask("Salir del grupo","Dejás de ver y de compartir tus estadísticas con este grupo. Podés volver a unirte con el mismo código.",function(){
+    leaveGroup();toast("saliste del grupo")})}
 },false);
 
 document.addEventListener("input",function(ev){

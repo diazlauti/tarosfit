@@ -23,12 +23,23 @@ Sin build step: es HTML/CSS/JS puro, se despliega tal cual como sitio estático.
        match /users/{uid} {
          allow read, write: if request.auth != null && request.auth.uid == uid;
        }
+       match /groups/{groupId}/members/{uid} {
+         allow read: if request.auth != null;
+         allow write: if request.auth != null && request.auth.uid == uid;
+       }
      }
    }
    ```
 
    Esto hace que cada usuario solo pueda leer/escribir su propio documento — nadie
    puede ver el entrenamiento de nadie más, aunque las claves del paso 5 sean públicas.
+   La segunda parte es para los "grupos con amigos" (ver más abajo): cualquiera que
+   esté logueado puede ver quién hay en un grupo si tiene el código, pero cada
+   persona solo puede escribir su propia fila.
+
+   > Si ya habías publicado las reglas antes de que existiera esta función, volvé
+   > a pegar el bloque completo (con las dos partes) y publicá de nuevo — no pasa
+   > nada con lo que ya tenías guardado.
 
 5. En el menú izquierdo → **⚙️ Project settings** (el engranaje) → abajo del todo,
    en "Your apps" → click en el ícono `</>` (Web) → registrá una app (el nombre
@@ -70,6 +81,15 @@ js/firebase-config.js  tus claves de Firebase (completar, no son secretas)
 img/                  fotos de cada ejercicio
 manifest.json, sw.js   PWA: se puede "agregar a inicio" y funciona offline en el gym
 ```
+
+## Grupos con amigos
+
+En la pestaña Rutinas, cualquiera puede crear un grupo (le da un código
+cortito, ej. `AB12CD`) o unirse a uno con el código de otra persona.
+Dentro de un grupo se ve, de cada integrante, su racha de semanas
+seguidas entrenando y cuántos entrenamientos hizo esta semana — nada más
+(no se ve la rutina, el peso ni el historial de nadie). Es opcional: sin
+unirse a ningún grupo, todo funciona exactamente igual que antes.
 
 ## Cómo sincroniza
 

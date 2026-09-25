@@ -39,6 +39,7 @@ el("auth-google").onclick=function(){
 firebase.auth().onAuthStateChanged(function(user){
   if(user){
     window.AppUserEmail=user.email||"";
+    window.AppUserName=user.displayName||user.email||"Alguien";
     el("auth-screen").classList.add("hidden");
     el("app-root").classList.remove("hidden");
     if(window.AppCloud)window.AppCloud.start(user.uid);
