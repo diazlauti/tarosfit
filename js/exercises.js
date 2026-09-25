@@ -254,8 +254,10 @@ var EXDB={
  img:["img/escaladores-0.jpg",
       "img/escaladores-1.jpg"]},
 "elevacion-piernas":{n:"Elevación de piernas",g:"core",home:true,
- cue:"Acostado boca arriba, piernas estiradas. Subilas hasta 90° sin doblar las rodillas y bajá controlado sin tocar el piso.",
- tips:["Arquear la espalda baja al bajar las piernas. Pegá la lumbar al piso todo el tiempo.","Usar impulso. Bajá despacio, ahí está el trabajo real.","Doblar mucho las rodillas. Mantenelas lo más estiradas que puedas."]},
+ cue:"Acostado boca arriba (en el piso o un banco), piernas estiradas. Subilas hasta 90° sin doblar las rodillas y bajá controlado sin tocar el piso.",
+ tips:["Arquear la espalda baja al bajar las piernas. Pegá la lumbar al piso todo el tiempo.","Usar impulso. Bajá despacio, ahí está el trabajo real.","Doblar mucho las rodillas. Mantenelas lo más estiradas que puedas."],
+ img:["img/elevacion-piernas-0.jpg",
+      "img/elevacion-piernas-1.jpg"]},
 };
 /* alternativas del mismo grupo: si el ejercicio es de calistenia, solo
    ofrece otros de calistenia (para no sugerir algo que necesite equipo
