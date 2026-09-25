@@ -82,7 +82,11 @@ function pushCloud(){
     if(S.groupId){
       firebase.firestore().collection("groups").doc(S.groupId).collection("members").doc(cloudUid).set(
         {name:window.AppUserName||window.AppUserEmail||"Alguien",streak:weekStreak(),
-         weekSessions:weekSessionsCount(),updatedAt:new Date().toISOString()},{merge:true}
+         weekSessions:weekSessionsCount(),weekVolume:weekVolume(),
+         bestSquat:bestBefore("Sentadilla con barra")||null,
+         bestBench:bestBefore("Press de banca")||null,
+         bestDeadlift:bestBefore("Peso muerto convencional")||null,
+         updatedAt:new Date().toISOString()},{merge:true}
       ).catch(function(){});
     }
   }catch(e){}
@@ -186,6 +190,14 @@ function weekSessionsCount(){
   if(!S.sessions.length)return 0;
   var today=Math.floor(Date.now()/86400000);
   return S.sessions.filter(function(s){return Math.floor(new Date(s.date).getTime()/86400000)>=today-6}).length;
+}
+function weekVolume(){
+  if(!S.sessions.length)return 0;
+  var today=Math.floor(Date.now()/86400000),v=0;
+  S.sessions.forEach(function(s){
+    if(Math.floor(new Date(s.date).getTime()/86400000)>=today-6)v+=sessionVol(s);
+  });
+  return v;
 }
 
 /* ---------- grupos con amigos ---------- */
@@ -659,10 +671,17 @@ function rGrupo(){
     if(S.groupBusy&&!S.groupBoard){
       h+='<p style="font-size:12.5px;color:var(--ink-faint)">cargando…</p>';
     }else if(S.groupBoard&&S.groupBoard.length){
-      h+='<div class="prevlist">';
+      h+='<div class="group-board">';
       S.groupBoard.forEach(function(m){
-        h+='<div class="r"><span>'+esc(m.name||"Alguien")+'</span><span class="t">'+
-          (m.streak||0)+(m.streak===1?" semana":" semanas")+' · '+(m.weekSessions||0)+' esta semana</span></div>';
+        var lifts=[];
+        if(m.bestSquat)lifts.push("sentadilla "+m.bestSquat+"kg");
+        if(m.bestBench)lifts.push("banca "+m.bestBench+"kg");
+        if(m.bestDeadlift)lifts.push("muerto "+m.bestDeadlift+"kg");
+        if(m.weekVolume)lifts.push(m.weekVolume.toLocaleString("es-AR")+"kg esta semana");
+        h+='<div class="group-row"><div class="gr-top"><span class="gr-name">'+esc(m.name||"Alguien")+'</span>'+
+          '<span class="gr-streak">'+(m.streak||0)+(m.streak===1?" semana":" semanas")+' · '+(m.weekSessions||0)+' esta semana</span></div>'+
+          (lifts.length?'<div class="gr-lifts">'+esc(lifts.join(" · "))+'</div>':'')+
+          '</div>';
       });
       h+='</div>';
     }else{

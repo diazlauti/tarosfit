@@ -76,6 +76,14 @@
   .prevlist .r:first-child{border-top:none}
   .prevlist .r .t{font-family:var(--mono);font-size:12.5px;color:var(--accent-deep);background:var(--accent-soft);padding:2px 7px;border-radius:6px;white-space:nowrap;align-self:center}
 
+  .group-board{margin:2px 0 0}
+  .group-row{padding:8px 0;border-top:1px dashed var(--line)}
+  .group-row:first-child{border-top:none}
+  .gr-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .gr-name{font-size:14px;font-weight:600;color:var(--ink)}
+  .gr-streak{font-family:var(--mono);font-size:11.5px;color:var(--accent-deep);background:var(--accent-soft);padding:2px 7px;border-radius:6px;white-space:nowrap}
+  .gr-lifts{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:3px}
+
   /* --- modo guiado --- */
   .gbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
   .gbar .txt{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);white-space:nowrap}
