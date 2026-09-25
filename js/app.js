@@ -78,22 +78,27 @@ function pushCloud(){
     ).catch(function(){});
   }catch(e){}
 }
+/* devuelve una promesa<boolean>: true si había datos reales en la nube
+   (y ya quedaron en S.days/S.sessions), false si no había o falló. boot()
+   espera esta respuesta antes de decidir si el usuario es nuevo, para no
+   confundir "todavía no llegó de la nube" con "no tiene rutina" */
 function attachCloud(uid){
   cloudUid=uid;cloudReady=false;
-  if(!window.firebase){cloudReady=true;return}
+  if(!window.firebase){cloudReady=true;return Promise.resolve(false)}
   try{
-    firebase.firestore().collection("users").doc(uid).get().then(function(snap){
-      if(snap.exists){
-        var d=snap.data()||{};
-        if(Array.isArray(d.days))S.days=d.days;
-        if(Array.isArray(d.sessions))S.sessions=d.sessions;
-        Store.set("gym-days",S.days);Store.set("gym-sessions",S.sessions);
-        cloudReady=true;render();
-      }else{
-        cloudReady=true;pushCloud();
-      }
-    }).catch(function(){cloudReady=true});
-  }catch(e){cloudReady=true}
+    return firebase.firestore().collection("users").doc(uid).get().then(function(snap){
+      if(!snap.exists){cloudReady=true;return false}
+      var d=snap.data()||{};
+      var had=Array.isArray(d.days)&&d.days.length>0;
+      if(Array.isArray(d.days))S.days=d.days;
+      if(Array.isArray(d.sessions))S.sessions=d.sessions;
+      /* solo cachear en local, sin volver a empujar a la nube lo que
+         acabamos de leer de ahí mismo: cloudReady se marca recién después */
+      Store.set("gym-days",S.days);Store.set("gym-sessions",S.sessions);
+      cloudReady=true;
+      return had;
+    }).catch(function(){cloudReady=true;return false});
+  }catch(e){cloudReady=true;return Promise.resolve(false)}
 }
 function detachCloud(){cloudUid=null;cloudReady=false}
 function saveDays(){return Store.set("gym-days",S.days)}
@@ -837,12 +842,12 @@ el("trs").onclick=function(){clearInterval(S.timer.iv);S.timer.run=false;S.timer
 el("fab").onclick=function(){el("tpanel").classList.toggle("on")};
 
 /* ---------- arranque ---------- */
-function boot(){
-  el("v-hoy").innerHTML='<p style="text-align:center;color:var(--ink-soft);padding:30px">cargando…</p>';
-  el("v-hoy").classList.add("on");
+function boot(cloudHadData){
   Promise.all([Store.get("gym-days"),Store.get("gym-sessions"),Store.get("gym-draft")]).then(function(r){
-    S.days=Array.isArray(r[0])?r[0]:[];
-    S.sessions=Array.isArray(r[1])?r[1]:[];
+    if(!cloudHadData){
+      S.days=Array.isArray(r[0])?r[0]:[];
+      S.sessions=Array.isArray(r[1])?r[1]:[];
+    }
     if(!S.days.length){
       if(window.AppWizard)window.AppWizard.open();
       else{seed();saveDays()}
@@ -863,9 +868,17 @@ document.addEventListener("visibilitychange",function(){
   if(!document.hidden&&S.timer.run)tick();
 },false);
 
-/* el arranque real lo dispara auth.js una vez que hay sesión iniciada */
+/* el arranque real lo dispara auth.js una vez que hay sesión iniciada.
+   se espera la respuesta de la nube antes de arrancar: así, en un
+   dispositivo nuevo con la misma cuenta, no se confunde "todavía no
+   llegó la rutina real" con "usuario nuevo" y no se pisa nada. */
 window.AppCloud={
-  start:function(uid){detachCloud();boot();attachCloud(uid);},
+  start:function(uid){
+    detachCloud();
+    el("v-hoy").innerHTML='<p style="text-align:center;color:var(--ink-soft);padding:30px">cargando…</p>';
+    el("v-hoy").classList.add("on");
+    attachCloud(uid).then(boot);
+  },
   stop:function(){detachCloud()}
 };
 window.AppRoutines={apply:applyGeneratedDays};
