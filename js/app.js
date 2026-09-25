@@ -7,6 +7,7 @@ var I_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 var I_SWAP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>';
 var I_UP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
 var I_DOWN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>';
+var I_FLAME='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1 3-3 4.5-3 8a3 3 0 0 0 6 0c0-1.2-.7-2-.7-2 1.7 1 2.7 2.8 2.7 4.5a5 5 0 0 1-10 0C7 9 10 7 12 3z"/></svg>';
 
 /* rutina base: cada ejercicio referencia una clave de EXDB */
 var SEED=[
@@ -157,6 +158,21 @@ function sessionSets(s){var n=0;s.ex.forEach(function(x){n+=x.sets.length});retu
 function bestBefore(n){var m=0;S.sessions.forEach(function(s){s.ex.forEach(function(e){
   if(e.name===n)e.sets.forEach(function(t){if(t.w>m)m=t.w})})});return m}
 
+/* semanas seguidas (de a 7 días corridos, terminando hoy) con al menos
+   un entrenamiento cada una. No depende de qué día caiga: la rutina no
+   sigue un calendario fijo, así que "racha" acá es constancia semanal. */
+function weekStreak(){
+  if(!S.sessions.length)return 0;
+  var dayNums=S.sessions.map(function(s){return Math.floor(new Date(s.date).getTime()/86400000)});
+  var today=Math.floor(Date.now()/86400000),streak=0;
+  for(var w=0;w<520;w++){
+    var to=today-7*w,from=to-6;
+    if(!dayNums.some(function(d){return d>=from&&d<=to}))break;
+    streak++;
+  }
+  return streak;
+}
+
 /* ---------- navegación ---------- */
 var TITLES={hoy:"Hoy",historial:"Historial",progreso:"Progreso",rutinas:"Rutinas"};
 function go(tab){
@@ -200,6 +216,8 @@ function rHoy(){
   var lastD=lastSessionForDay(day.id);
 
   var h=needsUpdate()?updateBanner():"";
+  var streak=weekStreak();
+  if(streak>0)h+='<div class="streak-pill">'+I_FLAME+' '+streak+(streak===1?" semana seguida entrenando":" semanas seguidas entrenando")+'</div>';
   h+='<div class="next-up"><div class="eyebrow">te toca</div>'+
     '<div class="name">'+esc(day.name)+'</div>'+
     '<div class="why">'+(lo?"último entrenamiento: "+daysAgoLabel(lo.date)+" ("+shortWk(lo.date)+")":"tu primer entrenamiento")+'</div></div>';

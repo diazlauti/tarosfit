@@ -8,6 +8,7 @@
 function el(id){return document.getElementById(id)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+var I_SWAP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>';
 function toast(m){var t=el("toast");if(!t)return;t.textContent=m;t.classList.add("on");
   clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove("on")},2100)}
 
@@ -168,8 +169,8 @@ var STEPS=[
 var GEN_STEPS=["Elegimos el tipo de rutina","Calculamos series y repeticiones","Elegimos los ejercicios"];
 var GEN_MS=1150;
 
-var ans,idx;
-function reset(){ans={goal:null,level:null,days:null,focus:null,limits:[]};idx=0}
+var ans,idx,draft;
+function reset(){ans={goal:null,level:null,days:null,focus:null,limits:[]};idx=0;draft=null}
 
 function labelFor(stepKey,v){
   var st=STEPS.filter(function(s){return s.key===stepKey})[0];
@@ -177,12 +178,12 @@ function labelFor(stepKey,v){
   return o?o.l:v;
 }
 
-function summaryHtml(){
-  return "Objetivo: <strong>"+esc(labelFor("goal",ans.goal))+"</strong><br>"+
-    "Nivel: <strong>"+esc(labelFor("level",ans.level))+"</strong><br>"+
-    "Días por semana: <strong>"+esc(ans.days)+"</strong><br>"+
-    "Prioridad: <strong>"+esc(labelFor("focus",ans.focus))+"</strong><br>"+
-    "Molestias: <strong>"+esc(ans.limits.length?ans.limits.map(function(l){return labelFor("limits",l)}).join(", "):"ninguna")+"</strong>";
+function summaryLine(){
+  var bits=[labelFor("goal",ans.goal)+", nivel "+labelFor("level",ans.level).toLowerCase(),
+    ans.days+" días por semana"];
+  if(ans.focus&&ans.focus!=="ninguno")bits.push("prioridad en "+labelFor("focus",ans.focus).toLowerCase());
+  if(ans.limits.length)bits.push("sin ejercicios de riesgo para "+ans.limits.map(function(l){return labelFor("limits",l).toLowerCase()}).join(" y "));
+  return bits.join(" · ");
 }
 
 function dots(total,cur){
@@ -213,10 +214,21 @@ function render(){
       '</div>';
     if(idx===0)h+='<button type="button" class="wiz-skip" data-w="skip">Prefiero la rutina clásica de 3 días</button>';
   }else{
+    if(!draft)draft=buildRoutine(ans);
     h+='<div class="wiz-dots">'+dots(STEPS.length+1,idx)+'</div>'+
       '<p class="wiz-q">Tu rutina va a quedar así</p>'+
-      '<div class="card" style="font-size:14px;line-height:1.7">'+summaryHtml()+'</div>'+
-      '<div class="wiz-nav" style="margin-top:16px">'+
+      '<p class="wiz-note">'+esc(summaryLine())+'</p>';
+    draft.forEach(function(d,di){
+      h+='<div class="card" style="margin-bottom:10px"><h4 class="wiz-day">'+esc(d.name)+'</h4>';
+      d.ex.forEach(function(x,xi){
+        h+='<div class="exrow"><span class="nm">'+esc(x.name)+'</span>'+
+          '<span class="tg">'+esc(x.sets)+'×'+esc(x.reps)+'</span>'+
+          '<button class="ib" data-w="swap-ex" data-day="'+di+'" data-idx="'+xi+'" aria-label="Cambiar ejercicio">'+I_SWAP+'</button></div>';
+      });
+      h+='</div>';
+    });
+    h+='<p class="wiz-note">Tocá el ícono al lado de un ejercicio para cambiarlo por otro del mismo grupo.</p>'+
+      '<div class="wiz-nav">'+
       '<button class="btn ghost sm" data-w="back">← Atrás</button>'+
       '<button class="btn sm" data-w="gen">Generar mi rutina</button>'+
       '</div>';
@@ -237,15 +249,15 @@ function renderGenerating(){
   root.innerHTML=h;
 }
 
-function finish(a){
+function applyDays(days){
   renderGenerating();
   setTimeout(function(){
-    var days=buildRoutine(a);
     if(window.AppRoutines)window.AppRoutines.apply(days);
     close();
     toast("rutina generada");
   },GEN_MS);
 }
+function finish(a){applyDays(buildRoutine(a))}
 function close(){var r=el("wizard-screen");if(r)r.classList.add("hidden")}
 
 document.addEventListener("click",function(ev){
@@ -259,11 +271,27 @@ document.addEventListener("click",function(ev){
       var i=ans.limits.indexOf(v);
       if(i>-1)ans.limits.splice(i,1);else ans.limits.push(v);
       render();
-    }else{ans[k]=v;idx++;render()}
-  }else if(w==="back"){idx=Math.max(0,idx-1);render()}
-  else if(w==="next"){idx++;render()}
+    }else{ans[k]=v;idx++;draft=null;render()}
+  }else if(w==="back"){idx=Math.max(0,idx-1);draft=null;render()}
+  else if(w==="next"){idx++;draft=null;render()}
+  else if(w==="swap-ex"){
+    var di=parseInt(t.getAttribute("data-day"),10),xi=parseInt(t.getAttribute("data-idx"),10);
+    var day=draft[di],x=day.ex[xi];
+    var usedInDay=day.ex.map(function(e){return e.key});
+    var opts=alternativas(x.key).filter(function(k){return usedInDay.indexOf(k)===-1});
+    var lim=ans.limits||[];
+    var excl=[];lim.forEach(function(l){(CARE[l]||[]).forEach(function(k){excl.push(k)})});
+    var safe=opts.filter(function(k){return excl.indexOf(k)===-1});
+    var pool=safe.length?safe:opts;
+    if(pool.length){
+      var next=pool[Math.floor(Math.random()*pool.length)];
+      x.key=next;x.name=EXDB[next].n;
+      if(EXDB[next].unit==="time")x.reps="60 seg";
+      render();
+    }else toast("no hay otro ejercicio de ese grupo para elegir");
+  }
   else if(w==="skip"){finish({goal:"hipertrofia",level:"intermedio",days:3,focus:"ninguno",limits:[]})}
-  else if(w==="gen"){finish(ans)}
+  else if(w==="gen"){applyDays(draft||buildRoutine(ans))}
 });
 
 window.AppWizard={
