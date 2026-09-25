@@ -10,7 +10,8 @@ Sin build step: es HTML/CSS/JS puro, se despliega tal cual como sitio estático.
 
 1. Andá a [console.firebase.google.com](https://console.firebase.google.com) y creá un proyecto nuevo (el nombre no importa, ej. "taros-fit").
 2. En el menú izquierdo → **Build → Authentication → Get started**.
-   - Pestaña "Sign-in method" → habilitá **Email/Password**.
+   - Pestaña "Sign-in method" → habilitá **Google**.
+   - Te va a pedir un "Project support email": elegí tu propio mail de la lista.
 3. En el menú izquierdo → **Build → Firestore Database → Create database**.
    - Elegí **modo producción** (no "modo de prueba") y la región que quieras.
 4. Reglas de seguridad: pestaña **Rules** de Firestore, reemplazá todo por esto y publicá:
@@ -33,10 +34,21 @@ Sin build step: es HTML/CSS/JS puro, se despliega tal cual como sitio estático.
    en "Your apps" → click en el ícono `</>` (Web) → registrá una app (el nombre
    no importa) → te va a mostrar un objeto `firebaseConfig`. Copiá esos valores
    a `js/firebase-config.js` en este repo, reemplazando los `"TU_..."`.
+6. **Authorized domains**: en **Authentication → Settings → Authorized domains**
+   agregá el dominio final donde vas a desplegar (ej. `tu-app.netlify.app`,
+   `tu-app.vercel.app` o `tu-usuario.github.io` — el que te toque según el
+   paso 2). `localhost` ya viene habilitado por defecto, para probar en tu
+   compu.
 
-Con eso ya está: creás una cuenta desde la pantalla de login de la app (con
-cualquier email/contraseña, no hace falta que sea un mail real que verifiques)
-y funciona desde cualquier dispositivo donde entres con esa misma cuenta.
+Con eso ya está: entrás desde la pantalla de login de la app con tu cuenta de
+Google (se abre la ventanita típica de Google) y funciona desde cualquier
+dispositivo donde entres con esa misma cuenta.
+
+> **Probar en local:** el login con Google necesita `http://` o `https://`,
+> no funciona si abrís `index.html` directo con doble click (`file://`). Para
+> probar antes de desplegar, corré un servidor local desde la carpeta del
+> proyecto, por ejemplo `npx serve` o `python3 -m http.server`, y abrí la
+> URL que te dé (`http://localhost:...`).
 
 ## 2. Desplegar
 
@@ -53,7 +65,7 @@ index.html          pantalla de login + shell de la app
 css/style.css        estilos (incluye modo oscuro automático)
 js/exercises.js       biblioteca de ejercicios (técnica, errores comunes, fotos)
 js/app.js             lógica de la app (rutinas, entrenamiento guiado, historial, progreso)
-js/auth.js            login/registro y arranque tras autenticarse
+js/auth.js            login con Google y arranque tras autenticarse
 js/firebase-config.js  tus claves de Firebase (completar, no son secretas)
 img/                  fotos de cada ejercicio
 manifest.json, sw.js   PWA: se puede "agregar a inicio" y funciona offline en el gym
