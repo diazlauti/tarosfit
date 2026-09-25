@@ -1,4 +1,4 @@
-# Taros-fit (Mi Rutina)
+# TaroFits
 
 Tracker de gimnasio: rutinas A/B/C, modo guiado con fotos y técnica de cada
 ejercicio, historial, progreso y cronómetro de descanso. Corre con cuenta
@@ -75,7 +75,8 @@ Es un sitio estático, así que cualquiera de estas sirve:
 index.html          pantalla de login + shell de la app
 css/style.css        estilos (incluye modo oscuro automático)
 js/exercises.js       biblioteca de ejercicios (técnica, errores comunes, fotos)
-js/app.js             lógica de la app (rutinas, entrenamiento guiado, historial, progreso)
+js/app.js             lógica de la app (rutinas, entrenamiento guiado, historial, progreso, ajustes)
+js/wizard.js           cuestionario que genera una rutina a medida
 js/auth.js            login con Google y arranque tras autenticarse
 js/firebase-config.js  tus claves de Firebase (completar, no son secretas)
 img/                  fotos de cada ejercicio
@@ -84,12 +85,14 @@ manifest.json, sw.js   PWA: se puede "agregar a inicio" y funciona offline en el
 
 ## Grupos con amigos
 
-En la pestaña Rutinas, cualquiera puede crear un grupo (le da un código
+En la pestaña Ajustes, cualquiera puede crear un grupo (le da un código
 cortito, ej. `AB12CD`) o unirse a uno con el código de otra persona.
 Dentro de un grupo se ve, de cada integrante, su racha de semanas
-seguidas entrenando y cuántos entrenamientos hizo esta semana — nada más
-(no se ve la rutina, el peso ni el historial de nadie). Es opcional: sin
-unirse a ningún grupo, todo funciona exactamente igual que antes.
+seguidas entrenando, cuántos entrenamientos hizo esta semana y sus
+mejores marcas en sentadilla/banca/peso muerto — nada más (no se ve la
+rutina completa ni el historial de nadie). Es opcional: sin unirse a
+ningún grupo, todo funciona exactamente igual que antes. Un adelanto del
+grupo (o una invitación a crear uno) aparece también en la pestaña Hoy.
 
 ## Cómo sincroniza
 

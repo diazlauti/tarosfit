@@ -25,7 +25,7 @@ var SEED=[
 
 var S={days:[],sessions:[],tab:"hoy",ui:{},work:null,workDate:null,gi:0,
   progEx:null,openS:null,summary:null,expandDay:null,pickOpen:false,swapOpen:null,editSetsFor:null,
-  groupId:null,groupBoard:null,groupBusy:false,settingsOpen:false,showTips:false,
+  groupId:null,groupBoard:null,groupBusy:false,showTips:false,
   timer:{total:90,left:90,run:false,iv:null,endAt:0}};
 var pending=null;
 
@@ -217,7 +217,7 @@ function refreshBoard(){
 }
 
 /* ---------- navegación ---------- */
-var TITLES={hoy:"Hoy",historial:"Historial",progreso:"Progreso",rutinas:"Rutinas"};
+var TITLES={hoy:"Hoy",historial:"Historial",progreso:"Progreso",rutinas:"Rutinas",ajustes:"Ajustes"};
 function go(tab){
   S.tab=tab;
   if(tab==="rutinas"&&!S.expandDay){var n=nextDay();S.expandDay=n?n.id:null}
@@ -234,10 +234,12 @@ function render(){
   if(S.tab==="hoy")rHoy();
   else if(S.tab==="historial")rHistorial();
   else if(S.tab==="progreso")rProgreso();
+  else if(S.tab==="ajustes")rAjustes();
   else rRutinas();
   var n=S.sessions.length;
   el("sub").textContent = S.tab==="hoy" ? (S.work?"entrenando":wkName())
     : S.tab==="rutinas" ? S.days.length+(S.days.length===1?" rutina":" rutinas")
+    : S.tab==="ajustes" ? (window.AppUserEmail||"")
     : n+(n===1?" entrenamiento":" entrenamientos");
 }
 
@@ -636,30 +638,37 @@ function rRutinas(){
     }
     h+='</div>';
   });
-  if(S.days.length){
-    h+='<div class="card" style="margin-top:4px">'+
-      '<div class="day-collapsed" data-a="toggle-settings">'+
-      '<div style="display:flex;align-items:center;gap:8px"><span class="cfg-ico">'+I_GEAR+'</span><h3 style="font-size:15px">Configuración</h3></div>'+
-      '<span class="chev">'+(S.settingsOpen?I_UP:I_DOWN)+'</span></div>';
-    if(S.settingsOpen){
-      h+='<div class="settings-sec"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 6px">'+
-        'Conectado como <strong>'+esc(window.AppUserEmail||"")+'</strong>. Tu rutina e historial se sincronizan solos entre tus dispositivos.</p>'+
-        '<button class="btn sm ghost" data-a="signout">Cerrar sesión</button></div>';
-      h+='<div class="settings-sec"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
-        '¿Cambió algo (objetivo, días, molestias)? Podés armar una rutina nueva con el cuestionario.</p>'+
-        '<button class="btn sm ghost" data-a="wizard-open">Rehacer el cuestionario</button></div>';
-      h+='<div class="settings-sec">'+rGrupo()+'</div>';
-      h+='<div class="settings-sec"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
-        'Copia de seguridad de tu rutina y tu historial — por si algún día querés pasarla a mano, o como respaldo extra además de la nube.</p>'+
-        '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
-        '<button class="btn sm ghost" data-a="export">Exportar copia</button>'+
-        '<button class="btn sm ghost" data-a="import-open">Importar copia</button>'+
-        '</div><input type="file" id="import-file" accept="application/json,.json" style="display:none"></div>';
-      h+='<div class="settings-sec" style="text-align:center"><button class="ib" style="font-size:12px;color:var(--ink-faint);min-width:auto;padding:6px 10px" data-a="ask-reset">Borrar todos los datos</button></div>';
-    }
-    h+='</div>';
-  }
   el("v-rutinas").innerHTML=h;
+}
+
+/* ---------- AJUSTES (cuenta, grupo, backup) ---------- */
+function rAjustes(){
+  var h='<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">'+
+    '<span class="cfg-ico">'+I_GEAR+'</span><h3 style="font-size:16px;margin:0">Configuración</h3></div></div>';
+
+  h+='<div class="card" style="margin-top:12px">'+
+    '<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 6px">'+
+    'Conectado como <strong>'+esc(window.AppUserEmail||"")+'</strong>. Tu rutina e historial se sincronizan solos entre tus dispositivos.</p>'+
+    '<button class="btn sm ghost" data-a="signout">Cerrar sesión</button></div>';
+
+  h+='<div class="card" style="margin-top:12px">'+
+    '<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
+    '¿Cambió algo (objetivo, días, molestias)? Podés armar una rutina nueva con el cuestionario.</p>'+
+    '<button class="btn sm ghost" data-a="wizard-open">Rehacer el cuestionario</button></div>';
+
+  h+='<div class="card" style="margin-top:12px">'+rGrupo()+'</div>';
+
+  h+='<div class="card" style="margin-top:12px">'+
+    '<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
+    'Copia de seguridad de tu rutina y tu historial — por si algún día querés pasarla a mano, o como respaldo extra además de la nube.</p>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+    '<button class="btn sm ghost" data-a="export">Exportar copia</button>'+
+    '<button class="btn sm ghost" data-a="import-open">Importar copia</button>'+
+    '</div><input type="file" id="import-file" accept="application/json,.json" style="display:none"></div>';
+
+  h+='<div style="text-align:center;margin-top:14px"><button class="ib" style="font-size:12px;color:var(--ink-faint);min-width:auto;padding:6px 10px" data-a="ask-reset">Borrar todos los datos</button></div>';
+
+  el("v-ajustes").innerHTML=h;
 }
 
 /* adelanto del grupo en la pestaña Hoy, para incentivar a usarlo sin
@@ -835,9 +844,8 @@ document.addEventListener("click",function(ev){
   else if(a==="save-day"){var n=val("i-day");if(!n){toast("ponele un nombre");return}
     var ni=uid();S.days.push({id:ni,name:n,ex:[]});S.ui={};S.expandDay=ni;saveDays();render();toast("rutina creada")}
   else if(a==="toggle-day"){S.expandDay=(S.expandDay===d?null:d);render()}
-  else if(a==="toggle-settings"){S.settingsOpen=!S.settingsOpen;render()}
   else if(a==="toggle-tips"){S.showTips=!S.showTips;render()}
-  else if(a==="settings-open-group"){S.settingsOpen=true;go("rutinas")}
+  else if(a==="settings-open-group"){go("ajustes")}
   else if(a==="edit-day"){S.ui={editDay:d};render();focus("i-dayname")}
   else if(a==="x-editday"){S.ui={};render()}
   else if(a==="save-dayname"){var nn=val("i-dayname");if(!nn){toast("no puede quedar vacío");return}
@@ -919,12 +927,12 @@ document.addEventListener("change",function(ev){
 function val(id){var e=el(id);return e?e.value.trim():""}
 function focus(id){setTimeout(function(){var e=el(id);if(e)e.focus()},40)}
 function exportBackup(){
-  var payload={app:"mirutina",version:1,exportedAt:new Date().toISOString(),days:S.days,sessions:S.sessions};
+  var payload={app:"tarofits",version:1,exportedAt:new Date().toISOString(),days:S.days,sessions:S.sessions};
   try{
     var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
     var url=URL.createObjectURL(blob);
     var a=document.createElement("a");
-    a.href=url;a.download="mirutina-backup-"+localDateStr()+".json";
+    a.href=url;a.download="tarofits-backup-"+localDateStr()+".json";
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     setTimeout(function(){URL.revokeObjectURL(url)},2000);
     return true;

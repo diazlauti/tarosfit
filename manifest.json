@@ -1,6 +1,6 @@
 {
-  "name": "Mi Rutina",
-  "short_name": "Mi Rutina",
+  "name": "TaroFits",
+  "short_name": "TaroFits",
   "description": "Llevá tu entrenamiento de gimnasio, sincronizado entre tus dispositivos.",
   "display": "standalone",
   "start_url": "./index.html",

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Mi Rutina">
+<meta name="apple-mobile-web-app-title" content="TaroFits">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#EFF2ED" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#171B16" media="(prefers-color-scheme: dark)">
-<meta name="description" content="Mi Rutina — llevá tu entrenamiento de gimnasio con cuenta propia, sincronizado entre el celu y la compu.">
-<title>Mi Rutina</title>
+<meta name="description" content="TaroFits — llevá tu entrenamiento de gimnasio con cuenta propia, sincronizado entre el celu y la compu.">
+<title>TaroFits</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%233F6B4F'/%3E%3Cg stroke='%23EFF2ED' stroke-width='11' stroke-linecap='round' fill='none'%3E%3Cpath d='M56 62v56M124 62v56M38 78v24M142 78v24M56 90h68'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%233F6B4F'/%3E%3Cg stroke='%23EFF2ED' stroke-width='11' stroke-linecap='round' fill='none'%3E%3Cpath d='M56 62v56M124 62v56M38 78v24M142 78v24M56 90h68'/%3E%3C/g%3E%3C/svg%3E">
@@ -20,7 +20,7 @@
 
 <div id="auth-screen" class="auth-screen">
   <div class="auth-card">
-    <h1>Mi Rutina</h1>
+    <h1>TaroFits</h1>
     <p class="tag">Tu rutina y tu historial, sincronizados entre el celu y la compu.</p>
     <button type="button" class="btn block google" id="auth-google">
       <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 0 1 3.68 9c0-.593.102-1.17.284-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
@@ -40,6 +40,7 @@
   <div class="view" id="v-historial"></div>
   <div class="view" id="v-progreso"></div>
   <div class="view" id="v-rutinas"></div>
+  <div class="view" id="v-ajustes"></div>
 </main>
 
 <button id="fab" aria-label="Cronómetro de descanso">
@@ -73,6 +74,8 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M11 19V5M18 19v-7M3 19h18"/></svg><span>Progreso</span></button>
   <button class="tab" data-tab="rutinas">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v2h6V3M8 10h8M8 14h8M8 18h5"/></svg><span>Rutinas</span></button>
+  <button class="tab" data-tab="ajustes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg><span>Ajustes</span></button>
 </nav>
 
 <div id="toast"></div>
