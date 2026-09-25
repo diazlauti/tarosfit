@@ -3,12 +3,12 @@
    No es secreta: es normal que viva en el código del frontend. La seguridad real
    la dan las reglas de Firestore (ver README.md). */
 window.FIREBASE_CONFIG = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  projectId: "TU_PROYECTO",
-  storageBucket: "TU_PROYECTO.appspot.com",
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID"
+  apiKey: "AIzaSyDc0dAc71yD_Br37Cu6eADzgfsvb0-7PGM",
+  authDomain: "tarosfit.firebaseapp.com",
+  projectId: "tarosfit",
+  storageBucket: "tarosfit.firebasestorage.app",
+  messagingSenderId: "863309098220",
+  appId: "1:863309098220:web:b0773b5c25c7fa77c5c9c9"
 };
 
 window.FIREBASE_CONFIGURED = window.FIREBASE_CONFIG.apiKey !== "TU_API_KEY";
