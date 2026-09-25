@@ -24,7 +24,7 @@ var SEED=[
 
 var S={days:[],sessions:[],tab:"hoy",ui:{},work:null,workDate:null,gi:0,
   progEx:null,openS:null,summary:null,expandDay:null,pickOpen:false,swapOpen:null,editSetsFor:null,
-  groupId:null,groupBoard:null,groupBusy:false,
+  groupId:null,groupBoard:null,groupBusy:false,settingsOpen:false,
   timer:{total:90,left:90,run:false,iv:null,endAt:0}};
 var pending=null;
 
@@ -633,23 +633,30 @@ function rRutinas(){
       '<strong>La rueda:</strong> no importa el día de la semana ni cuántas veces vayas. Hacés la que dice «te toca» y sigue sola: A → B → C → A…<br><br>'+
       '<strong>Esfuerzo:</strong> dejá 1-2 repeticiones en reserva en todo lo pesado. Al fallo solo en la última serie de aislamiento (curl, laterales, tríceps, gemelos).<br><br>'+
       '<strong>Progresión:</strong> si completás todas las series en el tope del rango y te sobran 2 reps, subís 2,5kg arriba o 5kg en piernas.</p></div>';
-    h+='<div class="card" style="margin-top:14px"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 6px">'+
-      'Conectado como <strong>'+esc(window.AppUserEmail||"")+'</strong>. Tu rutina e historial se sincronizan solos entre tus dispositivos.</p>'+
-      '<button class="btn sm ghost" data-a="signout">Cerrar sesión</button></div>';
-    h+=rGrupo();
-    h+='<div class="card" style="margin-top:14px"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
-      'Copia de seguridad de tu rutina y tu historial — por si algún día querés pasarla a mano, o como respaldo extra además de la nube.</p>'+
-      '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
-      '<button class="btn sm ghost" data-a="export">Exportar copia</button>'+
-      '<button class="btn sm ghost" data-a="import-open">Importar copia</button>'+
-      '</div><input type="file" id="import-file" accept="application/json,.json" style="display:none"></div>';
-    h+='<div style="text-align:center;margin-top:10px"><button class="ib" style="font-size:12px;color:var(--ink-faint);min-width:auto;padding:6px 10px" data-a="ask-reset">Borrar todos los datos</button></div>';
+
+    h+='<div class="card" style="margin-top:14px">'+
+      '<div class="day-collapsed" data-a="toggle-settings"><div><h3 style="font-size:15px">Cuenta, grupo y copia de seguridad</h3></div>'+
+      '<span class="chev">'+(S.settingsOpen?I_UP:I_DOWN)+'</span></div>';
+    if(S.settingsOpen){
+      h+='<div class="settings-sec"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 6px">'+
+        'Conectado como <strong>'+esc(window.AppUserEmail||"")+'</strong>. Tu rutina e historial se sincronizan solos entre tus dispositivos.</p>'+
+        '<button class="btn sm ghost" data-a="signout">Cerrar sesión</button></div>';
+      h+='<div class="settings-sec">'+rGrupo()+'</div>';
+      h+='<div class="settings-sec"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
+        'Copia de seguridad de tu rutina y tu historial — por si algún día querés pasarla a mano, o como respaldo extra además de la nube.</p>'+
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+        '<button class="btn sm ghost" data-a="export">Exportar copia</button>'+
+        '<button class="btn sm ghost" data-a="import-open">Importar copia</button>'+
+        '</div><input type="file" id="import-file" accept="application/json,.json" style="display:none"></div>';
+      h+='<div class="settings-sec" style="text-align:center"><button class="ib" style="font-size:12px;color:var(--ink-faint);min-width:auto;padding:6px 10px" data-a="ask-reset">Borrar todos los datos</button></div>';
+    }
+    h+='</div>';
   }
   el("v-rutinas").innerHTML=h;
 }
 
 function rGrupo(){
-  var h='<div class="card" style="margin-top:14px">';
+  var h='';
   if(!S.groupId){
     h+='<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
       'Comparen constancia con amigos: quien crea un grupo comparte el código, y quien lo tenga se une.</p>'+
@@ -689,7 +696,7 @@ function rGrupo(){
     }
     h+='<div style="margin-top:10px"><button class="btn sm ghost" data-a="group-leave">Salir del grupo</button></div>';
   }
-  return h+'</div>';
+  return h;
 }
 
 /* ---------- modal ---------- */
@@ -799,6 +806,7 @@ document.addEventListener("click",function(ev){
   else if(a==="save-day"){var n=val("i-day");if(!n){toast("ponele un nombre");return}
     var ni=uid();S.days.push({id:ni,name:n,ex:[]});S.ui={};S.expandDay=ni;saveDays();render();toast("rutina creada")}
   else if(a==="toggle-day"){S.expandDay=(S.expandDay===d?null:d);render()}
+  else if(a==="toggle-settings"){S.settingsOpen=!S.settingsOpen;render()}
   else if(a==="edit-day"){S.ui={editDay:d};render();focus("i-dayname")}
   else if(a==="x-editday"){S.ui={};render()}
   else if(a==="save-dayname"){var nn=val("i-dayname");if(!nn){toast("no puede quedar vacío");return}
