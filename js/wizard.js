@@ -1,7 +1,8 @@
 /* Cuestionario para armar una rutina a medida a partir del catálogo de
    ejercicios (EXDB/GRUPOS de exercises.js). Todo por cálculo, sin IA:
-   las respuestas eligen un tipo de split, un volumen de series/reps y
-   qué ejercicios de riesgo evitar; el resto sale de listas fijas. */
+   las respuestas eligen un tipo de split, un volumen de series/reps, qué
+   grupo reforzar y qué ejercicios de riesgo evitar; el resto sale de
+   listas fijas. */
 (function(){
 "use strict";
 function el(id){return document.getElementById(id)}
@@ -28,6 +29,10 @@ var PRIORITY={
   gemelos:["gemelos","gemelos-sentado"],
   core:["plancha","abdominales","rueda-abdominal"]
 };
+
+/* qué grupos entran cuando el usuario elige reforzar uno en particular */
+var FOCUS_MAP={pecho:["pecho"],espalda:["espalda"],piernas:["cuadriceps","isquios"],hombro:["hombro"],brazos:["brazos"]};
+function focusGroups(ans){return FOCUS_MAP[ans.focus]||[]}
 
 /* ejercicios a evitar según cada molestia, dejando siempre alternativas
    del mismo grupo. Esto no reemplaza el consejo de un profesional: solo
@@ -60,12 +65,23 @@ function mkEx(key,sr){
     reps:EXDB[key].unit==="time"?"60 seg":sr.reps};
 }
 
-/* un ejercicio por grupo, con "offset" para variar entre días */
-function fullBodyDay(name,limits,offset,sr){
+/* suma +1 ejercicio a los grupos de "focus" dentro de un mapa de cantidades
+   por grupo (respeta el "_" como valor por defecto de los que no se listan) */
+function bump(base,groups,focus){
+  var o={};
+  groups.forEach(function(g){o[g]=(base[g]||base._||1)+(focus.indexOf(g)>-1?1:0)});
+  return o;
+}
+
+/* un ejercicio por grupo (dos si el grupo está en "focus"), con "offset"
+   para variar entre días */
+function fullBodyDay(name,limits,offset,sr,focus){
   var ex=[];
   GROUPS.forEach(function(g){
     var pool=poolFor(g,limits);
-    if(pool.length)ex.push(mkEx(pool[offset%pool.length],sr));
+    if(!pool.length)return;
+    var n=focus.indexOf(g)>-1?2:1;
+    for(var i=0;i<n&&i<pool.length;i++)ex.push(mkEx(pool[(offset+i)%pool.length],sr));
   });
   return{id:uid(),name:name,ex:ex};
 }
@@ -83,28 +99,29 @@ function partDay(name,groups,limits,offset,sr,perGroup){
 }
 
 function buildRoutine(ans){
-  var sr=setsRepsFor(ans.goal,ans.level),lim=ans.limits||[];
+  var sr=setsRepsFor(ans.goal,ans.level),lim=ans.limits||[],focus=focusGroups(ans);
   if(ans.days===2)return[
-    fullBodyDay("Rutina A",lim,0,sr),
-    fullBodyDay("Rutina B",lim,1,sr)
+    fullBodyDay("Rutina A",lim,0,sr,focus),
+    fullBodyDay("Rutina B",lim,1,sr,focus)
   ];
   if(ans.days===4)return[
-    partDay("Superior A",UPPER,lim,0,sr,{_:1}),
-    partDay("Inferior A",LOWER,lim,0,sr,{_:1}),
-    partDay("Superior B",UPPER,lim,1,sr,{_:1}),
-    partDay("Inferior B",LOWER,lim,1,sr,{_:1})
+    partDay("Superior A",UPPER,lim,0,sr,bump({_:1},UPPER,focus)),
+    partDay("Inferior A",LOWER,lim,0,sr,bump({_:1},LOWER,focus)),
+    partDay("Superior B",UPPER,lim,1,sr,bump({_:1},UPPER,focus)),
+    partDay("Inferior B",LOWER,lim,1,sr,bump({_:1},LOWER,focus))
   ];
   if(ans.days===5)return[
-    partDay("Pecho",["pecho"],lim,0,sr,{_:ALL}),
-    partDay("Espalda",["espalda"],lim,0,sr,{_:ALL}),
-    partDay("Piernas",["cuadriceps","isquios","gemelos"],lim,0,sr,{cuadriceps:3,isquios:2,gemelos:2}),
-    partDay("Hombros y core",["hombro","core"],lim,0,sr,{hombro:4,core:2}),
-    partDay("Brazos y core",["brazos","core"],lim,1,sr,{brazos:ALL,core:2})
+    partDay("Pecho",["pecho"],lim,0,sr,bump({_:ALL},["pecho"],focus)),
+    partDay("Espalda",["espalda"],lim,0,sr,bump({_:ALL},["espalda"],focus)),
+    partDay("Piernas",["cuadriceps","isquios","gemelos"],lim,0,sr,
+      bump({cuadriceps:3,isquios:2,gemelos:2},["cuadriceps","isquios","gemelos"],focus)),
+    partDay("Hombros y core",["hombro","core"],lim,0,sr,bump({hombro:4,core:2},["hombro","core"],focus)),
+    partDay("Brazos y core",["brazos","core"],lim,1,sr,bump({brazos:ALL,core:2},["brazos","core"],focus))
   ];
   return[ // 3 días, o cualquier otro valor: cuerpo completo clásico
-    fullBodyDay("Rutina A",lim,0,sr),
-    fullBodyDay("Rutina B",lim,1,sr),
-    fullBodyDay("Rutina C",lim,2,sr)
+    fullBodyDay("Rutina A",lim,0,sr,focus),
+    fullBodyDay("Rutina B",lim,1,sr,focus),
+    fullBodyDay("Rutina C",lim,2,sr,focus)
   ];
 }
 
@@ -129,6 +146,16 @@ var STEPS=[
    {v:4,l:"4 días",d:"Tren superior e inferior alternados"},
    {v:5,l:"5 días",d:"Un grupo muscular grande por día"}
   ]},
+ {key:"focus",type:"single",q:"¿Querés darle prioridad a algún grupo en particular?",
+  note:"Le suma trabajo extra a ese grupo durante la semana.",
+  opts:[
+   {v:"ninguno",l:"Ninguno en particular"},
+   {v:"pecho",l:"Pecho"},
+   {v:"espalda",l:"Espalda"},
+   {v:"piernas",l:"Piernas"},
+   {v:"hombro",l:"Hombros"},
+   {v:"brazos",l:"Brazos"}
+  ]},
  {key:"limits",type:"multi",q:"¿Alguna molestia que debamos tener en cuenta?",
   note:"No reemplaza el consejo de un profesional: solo evita el ejercicio de más riesgo para esa zona.",
   opts:[
@@ -138,8 +165,11 @@ var STEPS=[
   ]}
 ];
 
+var GEN_STEPS=["Elegimos el tipo de rutina","Calculamos series y repeticiones","Elegimos los ejercicios"];
+var GEN_MS=1150;
+
 var ans,idx;
-function reset(){ans={goal:null,level:null,days:null,limits:[]};idx=0}
+function reset(){ans={goal:null,level:null,days:null,focus:null,limits:[]};idx=0}
 
 function labelFor(stepKey,v){
   var st=STEPS.filter(function(s){return s.key===stepKey})[0];
@@ -151,6 +181,7 @@ function summaryHtml(){
   return "Objetivo: <strong>"+esc(labelFor("goal",ans.goal))+"</strong><br>"+
     "Nivel: <strong>"+esc(labelFor("level",ans.level))+"</strong><br>"+
     "Días por semana: <strong>"+esc(ans.days)+"</strong><br>"+
+    "Prioridad: <strong>"+esc(labelFor("focus",ans.focus))+"</strong><br>"+
     "Molestias: <strong>"+esc(ans.limits.length?ans.limits.map(function(l){return labelFor("limits",l)}).join(", "):"ninguna")+"</strong>";
 }
 
@@ -163,11 +194,11 @@ function dots(total,cur){
 function render(){
   var root=el("wizard-screen");
   if(!root)return;
-  var h='<div class="wiz-wrap">';
+  var h='<div class="wiz-wrap wiz-step">';
   if(idx<STEPS.length){
     var st=STEPS[idx];
     h+='<div class="wiz-dots">'+dots(STEPS.length+1,idx)+'</div>';
-    if(idx===0)h+='<h1>Armemos tu rutina</h1><p class="tag">Cuatro preguntas rápidas para adaptarla a vos.</p>';
+    if(idx===0)h+='<h1>Armemos tu rutina</h1><p class="tag">Unas preguntas rápidas para adaptarla a vos.</p>';
     h+='<p class="wiz-q">'+esc(st.q)+'</p>';
     if(st.note)h+='<p class="wiz-note">'+esc(st.note)+'</p>';
     h+='<div class="wiz-opts">';
@@ -194,11 +225,26 @@ function render(){
   root.innerHTML=h;
 }
 
+function renderGenerating(){
+  var root=el("wizard-screen");
+  if(!root)return;
+  var h='<div class="wiz-wrap wiz-generating"><div class="wiz-spinner"></div>'+
+    '<p class="wiz-q">Armando tu rutina…</p><ul class="wiz-steps-anim">';
+  GEN_STEPS.forEach(function(s,i){
+    h+='<li style="animation-delay:'+(i*.3).toFixed(2)+'s">'+esc(s)+'</li>';
+  });
+  h+='</ul></div>';
+  root.innerHTML=h;
+}
+
 function finish(a){
-  var days=buildRoutine(a);
-  if(window.AppRoutines)window.AppRoutines.apply(days);
-  close();
-  toast("rutina generada");
+  renderGenerating();
+  setTimeout(function(){
+    var days=buildRoutine(a);
+    if(window.AppRoutines)window.AppRoutines.apply(days);
+    close();
+    toast("rutina generada");
+  },GEN_MS);
 }
 function close(){var r=el("wizard-screen");if(r)r.classList.add("hidden")}
 
@@ -216,7 +262,7 @@ document.addEventListener("click",function(ev){
     }else{ans[k]=v;idx++;render()}
   }else if(w==="back"){idx=Math.max(0,idx-1);render()}
   else if(w==="next"){idx++;render()}
-  else if(w==="skip"){finish({goal:"hipertrofia",level:"intermedio",days:3,limits:[]})}
+  else if(w==="skip"){finish({goal:"hipertrofia",level:"intermedio",days:3,focus:"ninguno",limits:[]})}
   else if(w==="gen"){finish(ans)}
 });
 

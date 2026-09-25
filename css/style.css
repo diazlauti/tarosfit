@@ -238,14 +238,35 @@
 .wiz-wrap h1{font-family:var(--display);font-size:24px;color:var(--accent-deep);margin:0 0 4px;text-align:center}
 .wiz-wrap>.tag{font-size:13px;color:var(--ink-soft);margin:0 0 22px;text-align:center}
 .wiz-dots{display:flex;justify-content:center;gap:6px;margin-bottom:20px}
-.wiz-dot{width:7px;height:7px;border-radius:50%;background:var(--accent-soft)}
-.wiz-dot.on{background:var(--accent)}
+.wiz-dot{width:7px;height:7px;border-radius:50%;background:var(--accent-soft);transition:transform .25s,background .25s}
+.wiz-dot.on{background:var(--accent);transform:scale(1.35)}
 .wiz-q{font-family:var(--display);font-size:19px;color:var(--ink);margin:0 0 6px;text-align:center}
 .wiz-note{font-size:12px;color:var(--ink-faint);text-align:center;margin:0 0 16px}
 .wiz-opts{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
-.wiz-opts .chip{width:100%;text-align:left;border-radius:12px;padding:12px 15px;display:block}
+.wiz-opts .chip{width:100%;text-align:left;border-radius:12px;padding:12px 15px;display:block;
+  transition:transform .15s,background .15s,border-color .15s}
+.wiz-opts .chip:active{transform:scale(.97)}
+.wiz-opts .chip.on{animation:wizPop .32s ease}
 .wiz-opts .chip .d{display:block;font-size:11.5px;font-weight:400;margin-top:2px;opacity:.75}
 .wiz-nav{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px}
 .wiz-skip{display:block;width:100%;text-align:center;margin-top:18px;background:none;border:none;
   color:var(--ink-faint);font-family:var(--body);font-size:12.5px;cursor:pointer;text-decoration:underline}
+
+/* paso a paso: la tarjeta entra con un fade + slide corto cada vez que se
+   renderiza, para que no se sienta que "aparece y ya está" */
+.wiz-step{animation:wizIn .28s ease}
+@keyframes wizIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes wizPop{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
+
+.wiz-generating{text-align:center;padding-top:26vh}
+.wiz-spinner{width:38px;height:38px;border-radius:50%;margin:0 auto 20px;
+  border:3px solid var(--accent-soft);border-top-color:var(--accent);animation:wizSpin .8s linear infinite}
+@keyframes wizSpin{to{transform:rotate(360deg)}}
+.wiz-steps-anim{list-style:none;margin:18px 0 0;padding:0;font-size:13px;color:var(--ink-soft)}
+.wiz-steps-anim li{opacity:0;margin-bottom:8px;animation:wizStepIn .4s ease forwards}
+@keyframes wizStepIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){
+  .wiz-step,.wiz-opts .chip.on,.wiz-steps-anim li{animation:none;opacity:1}
+  .wiz-spinner{animation-duration:2s}
+}
 .app-root.hidden{display:none}
