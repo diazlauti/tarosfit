@@ -1,6 +1,6 @@
 /* Service worker: deja la app usable en el gym sin señal.
    Sube CACHE_VERSION cuando cambies el HTML/CSS/JS para invalidar la caché vieja. */
-var CACHE_VERSION = "mirutina-v1";
+var CACHE_VERSION = "mirutina-v2";
 var APP_SHELL = [
   "./",
   "./index.html",
@@ -9,6 +9,7 @@ var APP_SHELL = [
   "./js/auth.js",
   "./js/exercises.js",
   "./js/firebase-config.js",
+  "./js/wizard.js",
   "./manifest.json"
 ];
 

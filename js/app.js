@@ -483,15 +483,19 @@ function rRutinas(){
   var nd=nextDay();
   var h=needsUpdate()?updateBanner():"";
   h+='<p class="today-line">Hoy es '+wkName()+'. Acá editás las rutinas; la de hoy se muestra sola en la pestaña Hoy.</p>';
-  h+='<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn sm" data-a="new-day">+ rutina</button></div>';
+  h+='<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">'+
+    '<button class="btn sm ghost" data-a="wizard-open">cuestionario</button>'+
+    '<button class="btn sm" data-a="new-day">+ rutina</button></div>';
   if(S.ui.newDay){
     h+='<div class="card"><div class="frow"><input type="text" id="i-day" class="f2" placeholder="nombre de la rutina"></div>'+
       '<div class="actrow"><button class="btn sm" data-a="save-day">Crear</button>'+
       '<button class="btn sm ghost" data-a="x-newday">Cancelar</button></div></div>';
   }
   if(!S.days.length&&!S.ui.newDay){
-    h+='<div class="empty"><span class="big">No hay rutinas</span><p>Cargá la rutina A/B/C de cuerpo completo.</p>'+
-      '<button class="btn" data-a="seed">cargar rutina A/B/C</button></div>';
+    h+='<div class="empty"><span class="big">No hay rutinas</span>'+
+      '<p>Respondé un cuestionario rápido y armamos una a tu medida, o cargá la clásica de cuerpo completo.</p>'+
+      '<button class="btn" data-a="wizard-open">Generar con cuestionario</button>'+
+      '<button class="btn ghost" style="margin-top:8px" data-a="seed">cargar rutina A/B/C</button></div>';
   }
   S.days.forEach(function(d){
     var editing=S.ui.editDay===d.id||S.ui.delDay===d.id||S.ui.addEx===d.id||
@@ -591,6 +595,12 @@ document.addEventListener("click",function(ev){
   var day=d?S.days.filter(function(o){return o.id===d})[0]:null;
 
   if(a==="seed"){seed();S.expandDay=null;saveDays();render();toast("rutina cargada")}
+  else if(a==="wizard-open"){
+    if(!window.AppWizard)return;
+    if(S.days.length){
+      ask("Generar rutina nueva","Vas a reemplazar tus rutinas actuales por otras armadas según tus respuestas. Tu historial no se toca.",function(){window.AppWizard.open()});
+    }else{window.AppWizard.open()}
+  }
   else if(a==="upd-seed"){
     ask("Actualizar rutina","Reemplaza tus rutinas por la versión nueva: fotos en cada ejercicio, plancha 3×60seg al final de los tres días, sin pájaros ni hollow hold. Tu historial no se toca.",function(){
       seed();S.expandDay=null;S.pickDayId=null;saveDays();render();toast("rutina actualizada")});
@@ -771,6 +781,11 @@ function applyImportedData(obj){
   render();toast("copia de seguridad importada");
   return true;
 }
+function applyGeneratedDays(days){
+  S.days=days;
+  S.work=null;S.summary=null;S.ui={};S.expandDay=null;S.pickDayId=null;S.workDate=null;S.gi=0;S.swapOpen=null;
+  saveDays();clearDraft();render();
+}
 function seed(){S.days=SEED.map(function(d){
   return{id:uid(),name:d.name,ex:d.ex.map(function(a){
     return{id:uid(),key:a[0],name:(EXDB[a[0]]?EXDB[a[0]].n:a[0]),sets:String(a[1]),reps:a[2]}})}})}
@@ -828,7 +843,10 @@ function boot(){
   Promise.all([Store.get("gym-days"),Store.get("gym-sessions"),Store.get("gym-draft")]).then(function(r){
     S.days=Array.isArray(r[0])?r[0]:[];
     S.sessions=Array.isArray(r[1])?r[1]:[];
-    if(!S.days.length){seed();saveDays()}
+    if(!S.days.length){
+      if(window.AppWizard)window.AppWizard.open();
+      else{seed();saveDays()}
+    }
     var restored=false,dr=r[2];
     if(dr&&dr.ex&&dr.ex.length&&dr.savedAt){
       var age=Date.now()-new Date(dr.savedAt).getTime();
@@ -850,5 +868,6 @@ window.AppCloud={
   start:function(uid){detachCloud();boot();attachCloud(uid);},
   stop:function(){detachCloud()}
 };
+window.AppRoutines={apply:applyGeneratedDays};
 })();
 
