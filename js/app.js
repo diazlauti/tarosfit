@@ -298,6 +298,7 @@ function rGuiada(){
   if(x.swapped)h+='<p class="swapnote">cambiado por '+esc(x.swapped)+' · <button class="linkbtn" data-a="unswap" data-x="'+i+'">deshacer</button></p>';
   if(x.prev)h+='<p class="glast">última vez: '+esc(x.prev)+'</p>';
   if(!meta)h+='<p class="nophoto">Ejercicio agregado por vos: no tiene foto en la biblioteca.</p>';
+  else if(!meta.img)h+='<p class="nophoto">Todavía no tenemos foto de este ejercicio en la guía — seguí la técnica de abajo.</p>';
 
   if(meta){
     h+='<p class="gcue">'+esc(meta.cue)+'</p>';
@@ -310,11 +311,12 @@ function rGuiada(){
     var alts=alternativas(x.key);
     if(S.swapOpen===i&&alts.length){
       h+='<div class="card"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
-         '¿Ocupada la máquina? Elegí otro de '+esc((GRUPOS[meta.g]||meta.g).toLowerCase())+':</p>';
+         (meta.home?'¿Querés cambiarlo? Elegí otro de ':'¿Ocupada la máquina? Elegí otro de ')+
+         esc((GRUPOS[meta.g]||meta.g).toLowerCase())+':</p>';
       alts.forEach(function(k){
         var am=EXDB[k];
         h+='<button class="altrow" data-a="do-swap" data-x="'+i+'" data-k="'+k+'">'+
-           (am.img?'<img src="'+am.img[1]+'" alt="">':'')+
+           (am.img?'<img src="'+am.img[1]+'" alt="">':'<span class="altrow-ph" aria-hidden="true"></span>')+
            '<span>'+esc(am.n)+'</span></button>';
       });
       h+='<div style="margin-top:8px"><button class="btn ghost sm" data-a="swap-close">Cancelar</button></div></div>';
