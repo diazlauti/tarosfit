@@ -2,6 +2,16 @@
 "use strict";
 function el(id){return document.getElementById(id)}
 
+/* Google bloquea el login de Google dentro del navegador embebido de
+   Instagram/Facebook/TikTok/etc ("disallowed_useragent"). Como ese error lo
+   muestra Google mismo dentro del popup (no es algo que podamos atrapar con
+   try/catch), avisamos de antemano si detectamos ese user agent. */
+(function warnIfInAppBrowser(){
+  var ua=navigator.userAgent||"";
+  var inApp=/FBAN|FBAV|Instagram|Line\/|MicroMessenger|TikTok|BytedanceWebview|musical_ly|Twitter|Snapchat|Pinterest/i.test(ua);
+  if(inApp){var w=el("inapp-warn");if(w)w.classList.add("show")}
+})();
+
 if(!window.firebase || !window.FIREBASE_CONFIGURED){
   var msg=el("auth-msg");
   if(msg)msg.textContent="Falta configurar Firebase (js/firebase-config.js). Mirá el README.";

@@ -83,6 +83,7 @@
   .gr-name{font-size:14px;font-weight:600;color:var(--ink)}
   .gr-streak{font-family:var(--mono);font-size:11.5px;color:var(--accent-deep);background:var(--accent-soft);padding:2px 7px;border-radius:6px;white-space:nowrap}
   .gr-lifts{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:3px}
+  #group-code{-webkit-user-select:text;user-select:text}
 
   /* --- modo guiado --- */
   .gbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
@@ -242,6 +243,9 @@
 .auth-card .btn{margin-top:4px}
 .btn.google{background:var(--surface);color:var(--ink);border:1.5px solid rgba(32,40,31,.15)}
 .auth-msg{font-size:12.5px;min-height:18px;margin:10px 0 2px;color:var(--ink-soft)}
+.inapp-warn{display:none;font-size:12.5px;line-height:1.5;color:var(--rust);background:var(--rust-soft);
+  border-radius:10px;padding:10px 12px;margin:0 0 14px;text-align:left}
+.inapp-warn.show{display:block}
 
 /* wizard de rutina */
 .wizard-screen{position:fixed;inset:0;z-index:110;background:var(--paper);overflow-y:auto;

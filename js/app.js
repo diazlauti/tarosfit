@@ -139,23 +139,6 @@ function unitForName(name){
     for(var b=0;b<sx.length;b++)if(sx[b].name===name){var kk=effKey(sx[b]);if(kk)return EXDB[kk]?EXDB[kk].unit||"reps":"reps"}}
   return "reps";
 }
-/* ¿la rutina guardada es de una versión anterior? (ejercicios sin foto) */
-function needsUpdate(){
-  if(!S.days.length)return false;
-  for(var i=0;i<S.days.length;i++){
-    var d=S.days[i];
-    for(var j=0;j<d.ex.length;j++) if(!exMeta(d.ex[j])) return true;
-  }
-  return false;
-}
-function updateBanner(){
-  return '<div class="card" style="border-left:3px solid var(--rust);margin-bottom:14px">'+
-    '<p style="font-size:13.5px;line-height:1.5;margin:0 0 4px"><strong>Tenés la rutina vieja guardada.</strong></p>'+
-    '<p style="font-size:12.5px;line-height:1.5;margin:0 0 10px;color:var(--ink-soft)">'+
-    'La nueva trae fotos en cada ejercicio, plancha al final de los tres días, y sin pájaros ni hollow hold. '+
-    'Tu historial de entrenamientos no se toca.</p>'+
-    '<button class="btn sm" data-a="upd-seed">Actualizar rutina</button></div>';
-}
 function exName(x){var m=exMeta(x);return m?m.n:(x.name||"Ejercicio")}
 function lastSessionOverall(){if(!S.sessions.length)return null;
   return S.sessions.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date)})[0]}
@@ -260,7 +243,7 @@ function rHoy(){
   var isToday=wdate===localDateStr();
   var lastD=lastSessionForDay(day.id);
 
-  var h=needsUpdate()?updateBanner():"";
+  var h="";
   var streak=weekStreak();
   if(streak>0)h+='<div class="streak-pill">'+I_FLAME+' '+streak+(streak===1?" semana seguida entrenando":" semanas seguidas entrenando")+'</div>';
   h+=groupTeaser();
@@ -329,9 +312,10 @@ function rGuiada(){
       h+='<div class="card"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
          '¿Ocupada la máquina? Elegí otro de '+esc((GRUPOS[meta.g]||meta.g).toLowerCase())+':</p>';
       alts.forEach(function(k){
+        var am=EXDB[k];
         h+='<button class="altrow" data-a="do-swap" data-x="'+i+'" data-k="'+k+'">'+
-           '<img src="'+EXDB[k].img[1]+'" alt="">'+
-           '<span>'+esc(EXDB[k].n)+'</span></button>';
+           (am.img?'<img src="'+am.img[1]+'" alt="">':'')+
+           '<span>'+esc(am.n)+'</span></button>';
       });
       h+='<div style="margin-top:8px"><button class="btn ghost sm" data-a="swap-close">Cancelar</button></div></div>';
     }else if(alts.length){
@@ -550,8 +534,7 @@ function chart(pts,mx){
 /* ---------- RUTINAS (edición) ---------- */
 function rRutinas(){
   var nd=nextDay();
-  var h=needsUpdate()?updateBanner():"";
-  h+='<p class="today-line">Hoy es '+wkName()+'. Acá editás las rutinas; la de hoy se muestra sola en la pestaña Hoy. '+
+  var h='<p class="today-line">Hoy es '+wkName()+'. Acá editás las rutinas; la de hoy se muestra sola en la pestaña Hoy. '+
     '<button class="linkbtn" style="font-size:12.5px" data-a="toggle-tips">¿cómo funciona?</button></p>';
   if(S.showTips){
     h+='<div class="card" style="background:transparent;box-shadow:none;border:1px dashed var(--line)">'+
@@ -755,10 +738,6 @@ document.addEventListener("click",function(ev){
     if(S.days.length){
       ask("Generar rutina nueva","Vas a reemplazar tus rutinas actuales por otras armadas según tus respuestas. Tu historial no se toca.",function(){window.AppWizard.open()});
     }else{window.AppWizard.open()}
-  }
-  else if(a==="upd-seed"){
-    ask("Actualizar rutina","Reemplaza tus rutinas por la versión nueva: fotos en cada ejercicio, plancha 3×60seg al final de los tres días, sin pájaros ni hollow hold. Tu historial no se toca.",function(){
-      seed();S.expandDay=null;S.pickDayId=null;saveDays();render();toast("rutina actualizada")});
   }
   else if(a==="open-pick"){S.pickOpen=true;render()}
   else if(a==="pick"){S.pickDayId=d;S.pickOpen=false;render()}
