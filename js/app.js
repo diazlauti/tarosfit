@@ -288,10 +288,16 @@ function rGuiada(){
     '<button class="ib" data-a="ask-cancel" aria-label="Cancelar entrenamiento" style="min-width:30px">'+I_TRASH+'</button></div>';
 
   if(meta&&meta.img){
-    h+='<div class="photos">'+
-       '<figure><img src="'+meta.img[0]+'" alt="Posición inicial de '+esc(x.name)+'" loading="lazy"><figcaption>inicio</figcaption></figure>'+
-       '<figure><img src="'+meta.img[1]+'" alt="Posición final de '+esc(x.name)+'" loading="lazy"><figcaption>final</figcaption></figure>'+
-       '</div>';
+    if(meta.img.length>1){
+      h+='<div class="photos">'+
+         '<figure><img src="'+meta.img[0]+'" alt="Posición inicial de '+esc(x.name)+'" loading="lazy"><figcaption>inicio</figcaption></figure>'+
+         '<figure><img src="'+meta.img[1]+'" alt="Posición final de '+esc(x.name)+'" loading="lazy"><figcaption>final</figcaption></figure>'+
+         '</div>';
+    }else{
+      h+='<div class="photos one">'+
+         '<figure><img src="'+meta.img[0]+'" alt="'+esc(x.name)+'" loading="lazy"></figure>'+
+         '</div>';
+    }
   }
   h+='<h2 class="gname">'+esc(x.name)+'</h2>';
   h+='<div class="gtarget">objetivo '+esc(x.tSets)+' × '+esc(x.tReps)+'</div>';
@@ -316,7 +322,7 @@ function rGuiada(){
       alts.forEach(function(k){
         var am=EXDB[k];
         h+='<button class="altrow" data-a="do-swap" data-x="'+i+'" data-k="'+k+'">'+
-           (am.img?'<img src="'+am.img[1]+'" alt="">':'<span class="altrow-ph" aria-hidden="true"></span>')+
+           (am.img?'<img src="'+am.img[am.img.length-1]+'" alt="">':'<span class="altrow-ph" aria-hidden="true"></span>')+
            '<span>'+esc(am.n)+'</span></button>';
       });
       h+='<div style="margin-top:8px"><button class="btn ghost sm" data-a="swap-close">Cancelar</button></div></div>';
