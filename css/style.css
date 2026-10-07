@@ -316,6 +316,14 @@
 .heat-legend{display:flex;align-items:center;gap:6px;margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--ink-soft)}
 .heat-legend .heat-cell{display:inline-block;width:11px;height:11px;flex:none}
 
+/* ---- series por grupo muscular (progreso) ---- */
+.gv-head{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
+.gv-row{display:flex;align-items:center;gap:9px;padding:5px 0}
+.gv-name{font-size:12.5px;width:84px;flex-shrink:0;color:var(--ink)}
+.gv-track{flex:1;height:8px;background:var(--line);border-radius:5px;overflow:hidden}
+.gv-bar{height:100%;background:var(--accent);border-radius:5px;transform-origin:left;transition:transform .8s cubic-bezier(.2,.8,.2,1)}
+.gv-n{font-family:var(--mono);font-size:11px;color:var(--ink-soft);width:58px;text-align:right;flex-shrink:0}
+
 /* auth screen */
 .auth-screen{position:fixed;inset:0;z-index:100;background:var(--paper);display:flex;
   align-items:center;justify-content:center;padding:24px calc(24px + 22px) 24px 24px}

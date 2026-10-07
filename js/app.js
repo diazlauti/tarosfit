@@ -689,7 +689,33 @@ function rProgreso(){
     '<div class="stat"><div class="n">'+pts.length+'</div><div class="l">sesiones</div></div></div>';
   h+='<div class="card">'+chart(pts,mx)+'<p style="font-size:11.5px;color:var(--ink-faint);text-align:center;margin:6px 0 0">'+
      (mode==="time"?"segundos sostenidos por sesión":mode==="bw"?"repeticiones máximas por sesión":"peso máximo por sesión")+'</p></div>';
+  var gv=groupVol();
+  if(gv.length){
+    h+='<div class="card"><div class="gv-head">series por grupo · últimos 30 días</div>';
+    gv.forEach(function(g){
+      h+='<div class="gv-row"><span class="gv-name">'+esc(g.name)+'</span>'+
+         '<div class="gv-track"><div class="gv-bar" style="transform:scaleX('+g.ratio.toFixed(3)+')"></div></div>'+
+         '<span class="gv-n">'+g.n+(g.n===1?" serie":" series")+'</span></div>';
+    });
+    h+='</div>';
+  }
   el("v-progreso").innerHTML=h;bindSel();
+}
+/* series por grupo muscular, últimos 30 días. En series y no en kg: el volumen
+   con peso no se puede comparar contra calistenia/isometría (misma razón por
+   la que el mapa de calor cuenta series y no kg movidos). */
+function groupVol(){
+  var monthAgo=Date.now()-30*86400000, acc={};
+  S.sessions.forEach(function(s){
+    if(new Date(s.date).getTime()<monthAgo)return;
+    s.ex.forEach(function(x){
+      var g=(EXDB[effKey(x)]||{g:"otros"}).g;
+      acc[g]=(acc[g]||0)+x.sets.length;
+    });
+  });
+  var keys=Object.keys(acc).sort(function(a,b){return acc[b]-acc[a]});
+  var max=0;keys.forEach(function(k){if(acc[k]>max)max=acc[k]});
+  return keys.map(function(k){return{name:GRUPOS[k]||k,n:acc[k],ratio:max?acc[k]/max:0}});
 }
 function bindSel(){var s=el("sel-ex");if(s)s.onchange=function(){S.progEx=s.value;rProgreso()}}
 function chart(pts,mx){
