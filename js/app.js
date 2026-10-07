@@ -10,6 +10,9 @@ var I_DOWN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 var I_FLAME='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1 3-3 4.5-3 8a3 3 0 0 0 6 0c0-1.2-.7-2-.7-2 1.7 1 2.7 2.8 2.7 4.5a5 5 0 0 1-10 0C7 9 10 7 12 3z"/></svg>';
 var I_REFRESH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg>';
 var I_GEAR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg>';
+var I_EXPAND='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 15v5h-5M20 9V4h-5M4 15v5h5"/></svg>';
+var I_MINUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>';
+var I_PLUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 
 /* rutina base: cada ejercicio referencia una clave de EXDB */
 var SEED=[
@@ -25,7 +28,7 @@ var SEED=[
 
 var S={days:[],sessions:[],tab:"hoy",ui:{},work:null,workDate:null,gi:0,
   progEx:null,openS:null,summary:null,expandDay:null,pickOpen:false,swapOpen:null,editSetsFor:null,
-  groupId:null,groupBoard:null,groupBusy:false,showTips:false,
+  groupId:null,groupBoard:null,groupBusy:false,showTips:false,big:false,bigSi:0,
   timer:{total:90,left:90,run:false,iv:null,endAt:0}};
 var pending=null;
 
@@ -139,6 +142,13 @@ function fmtSet(key,s){
   if(isBwKey(key))return s.r+(s.r===1?" rep":" reps");
   return s.w+"kg × "+s.r;
 }
+/* modo grande arranca una serie en blanco desde un número posta, no 0:
+   0 reps/segundos pasaría el check visual de "serie hecha" pero finishWork()
+   la descartaría por inválida (exige >0), perdiendo la serie en silencio */
+function defaultRepVal(x){
+  var m=String((x&&x.tReps)||"").match(/\d+/);
+  return m?parseInt(m[0],10):8;
+}
 /* si el registro es de antes de guardar la key, la reconstruye buscando por nombre */
 function keyForName(name){for(var k in EXDB){if(EXDB[k].n===name)return k}return null}
 function effKey(x){return x.key||keyForName(x.name)}
@@ -220,6 +230,7 @@ function refreshBoard(){
 var TITLES={hoy:"Hoy",historial:"Historial",progreso:"Progreso",rutinas:"Rutinas",ajustes:"Ajustes"};
 function go(tab){
   S.tab=tab;
+  S.big=false;
   if(tab==="rutinas"&&!S.expandDay){var n=nextDay();S.expandDay=n?n.id:null}
   var vs=document.querySelectorAll(".view");
   for(var i=0;i<vs.length;i++)vs[i].classList.remove("on");
@@ -241,6 +252,7 @@ function render(){
     : S.tab==="rutinas" ? S.days.length+(S.days.length===1?" rutina":" rutinas")
     : S.tab==="ajustes" ? (window.AppUserEmail||"")
     : n+(n===1?" entrenamiento":" entrenamientos");
+  renderBig();
 }
 
 /* ---------- HOY ---------- */
@@ -348,6 +360,7 @@ function rGuiada(){
       h+='<button class="swapbtn" data-a="swap-open" data-x="'+i+'">'+I_SWAP+' cambiar por otro de '+esc((GRUPOS[meta.g]||meta.g).toLowerCase())+'</button>';
     }
   }
+  h+='<button class="swapbtn" data-a="toggle-big">'+I_EXPAND+' modo grande</button>';
   h+='<div class="card">';
   var lastArr=x.prevSets||null;
   var isTimeEx=isTimeKey(x.key), isBwEx=isBwKey(x.key);
@@ -386,6 +399,69 @@ function rGuiada(){
   h+='</div>';
 
   el("v-hoy").innerHTML=h;
+}
+
+/* ---------- MODO GRANDE: una serie a la vez, números gigantes y +/- ---------- */
+function renderBig(){
+  var bp=el("bigpanel");
+  if(!bp)return;
+  if(!S.big||!S.work){bp.innerHTML="";bp.classList.remove("on");return}
+  var w=S.work, gi=Math.max(0,Math.min(S.gi,w.ex.length-1));
+  var x=w.ex[gi], meta=x.key&&EXDB[x.key]?EXDB[x.key]:null;
+  var noW=noWeightKey(x.key), timeEx=isTimeKey(x.key);
+  var si=Math.max(0,Math.min(S.bigSi,x.sets.length-1)); S.bigSi=si;
+  var st=x.sets[si];
+
+  var h='<div class="bigwrap">';
+  h+='<div class="big-top"><span class="big-sub">'+esc((meta&&(GRUPOS[meta.g]||meta.g))||"ejercicio")+' · serie '+(si+1)+' de '+x.sets.length+'</span>'+
+     '<button class="big-exit" data-a="toggle-big">salir</button></div>';
+  h+='<div class="big-name">'+esc(x.name)+'</div>';
+
+  if(noW){
+    var rv=st.r===""?0:(parseInt(st.r,10)||0);
+    h+='<div class="big-row one"><div class="big-card">'+
+       '<div class="big-lbl">'+(timeEx?"segundos":"repeticiones")+'</div>'+
+       '<div class="big-num">'+rv+'</div>'+
+       '<div class="big-steps">'+
+       '<button class="big-step" data-a="big-r-down" aria-label="menos">'+I_MINUS+'</button>'+
+       '<button class="big-step up" data-a="big-r-up" aria-label="más">'+I_PLUS+'</button>'+
+       '</div></div></div>';
+  }else{
+    var wv=st.w===""?0:(parseFloat(st.w)||0);
+    var rv2=st.r===""?0:(parseInt(st.r,10)||0);
+    h+='<div class="big-row">';
+    h+='<div class="big-card"><div class="big-lbl">peso</div>'+
+       '<div class="big-num">'+wv+'<span class="big-unit">kg</span></div>'+
+       '<div class="big-steps">'+
+       '<button class="big-step" data-a="big-w-down" aria-label="menos peso">'+I_MINUS+'</button>'+
+       '<button class="big-step up" data-a="big-w-up" aria-label="más peso">'+I_PLUS+'</button>'+
+       '</div></div>';
+    h+='<div class="big-card"><div class="big-lbl">reps</div>'+
+       '<div class="big-num">'+rv2+'</div>'+
+       '<div class="big-steps">'+
+       '<button class="big-step" data-a="big-r-down" aria-label="menos reps">'+I_MINUS+'</button>'+
+       '<button class="big-step up" data-a="big-r-up" aria-label="más reps">'+I_PLUS+'</button>'+
+       '</div></div>';
+    h+='</div>';
+  }
+
+  if(x.prev)h+='<div class="big-last">última vez: '+esc(x.prev)+'</div>';
+
+  h+='<div class="big-chips">';
+  x.sets.forEach(function(s,idx){
+    var ok=noW?(s.r!==""):(s.w!==""&&s.r!=="");
+    h+='<button class="big-chip'+(idx===si?" cur":"")+(ok?" done":"")+'" data-a="big-goto" data-si="'+idx+'">'+
+       '<div class="big-chip-txt">'+(ok?esc(fmtSet(x.key,s)):"—")+'</div>'+
+       '<div class="big-chip-n">serie '+(idx+1)+'</div></button>';
+  });
+  h+='</div>';
+
+  h+='<div style="flex:1"></div>';
+  h+='<button class="btn block big-cta" data-a="big-cta">'+(si<x.sets.length-1?"Siguiente serie →":"Listo, salir")+'</button>';
+  h+='</div>';
+
+  bp.innerHTML=h;
+  bp.classList.add("on");
 }
 
 /* ---------- RESUMEN ---------- */
@@ -846,9 +922,55 @@ document.addEventListener("click",function(ev){
     }
   }
   else if(a==="rest"){startRest(90)}
-  else if(a==="finish"){finishWork()}
+  else if(a==="finish"){S.big=false;finishWork()}
   else if(a==="ask-cancel"){ask("Cancelar entrenamiento","Se pierden las series que cargaste.",function(){
-    S.work=null;S.workDate=null;S.pickDayId=null;S.gi=0;clearDraft();render()})}
+    S.work=null;S.workDate=null;S.pickDayId=null;S.gi=0;S.big=false;clearDraft();render()})}
+  else if(a==="toggle-big"){
+    if(!S.big&&S.work){
+      var bx=S.work.ex[S.gi], bNoW=noWeightKey(bx.key), bTime=isTimeKey(bx.key);
+      var bi=0;
+      for(var bsi=0;bsi<bx.sets.length;bsi++){
+        var bok=bNoW?(bx.sets[bsi].r!==""):(bx.sets[bsi].w!==""&&bx.sets[bsi].r!=="");
+        if(!bok){bi=bsi;break}
+      }
+      S.bigSi=bi;
+      var bst=bx.sets[bi], blp=(bx.prevSets&&bx.prevSets[bi])?bx.prevSets[bi]:null;
+      if(bst.r==="")bst.r=String(blp?blp.r:defaultRepVal(bx));
+      if(!bNoW&&bst.w==="")bst.w=String(blp?blp.w:0);
+      S.big=true;
+    }else{
+      S.big=false;
+    }
+    render();saveDraft();
+  }
+  else if(a==="big-goto"){S.bigSi=parseInt(t.getAttribute("data-si"),10)||0;render()}
+  else if(a==="big-w-up"||a==="big-w-down"){
+    var wcx=S.work.ex[S.gi], wst=wcx.sets[S.bigSi];
+    var wv=wst.w===""?0:(parseFloat(wst.w)||0);
+    wv+=a==="big-w-up"?2.5:-2.5; if(wv<0)wv=0;
+    wst.w=String(Math.round(wv*10)/10);
+    render();saveDraft();
+  }
+  else if(a==="big-r-up"||a==="big-r-down"){
+    var rcx=S.work.ex[S.gi], rst=rcx.sets[S.bigSi];
+    var rv=rst.r===""?0:(parseInt(rst.r,10)||0);
+    rv+=a==="big-r-up"?1:-1; if(rv<0)rv=0;
+    rst.r=String(rv);
+    render();saveDraft();
+  }
+  else if(a==="big-cta"){
+    var ccx=S.work.ex[S.gi];
+    if(S.bigSi<ccx.sets.length-1){
+      S.bigSi++;
+      var nst=ccx.sets[S.bigSi], nlp=(ccx.prevSets&&ccx.prevSets[S.bigSi])?ccx.prevSets[S.bigSi]:null;
+      var cNoW=noWeightKey(ccx.key);
+      if(nst.r==="")nst.r=String(nlp?nlp.r:defaultRepVal(ccx));
+      if(!cNoW&&nst.w==="")nst.w=String(nlp?nlp.w:0);
+    }else{
+      S.big=false;
+    }
+    render();saveDraft();
+  }
   else if(a==="close-sum"){S.summary=null;go("historial")}
   else if(a==="toggle"){S.openS=S.openS===sid?null:sid;S.editSetsFor=null;render()}
   else if(a==="edit-exsess"){S.editSetsFor=t.getAttribute("data-hs")+"|"+t.getAttribute("data-hx");render()}
