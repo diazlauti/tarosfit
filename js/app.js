@@ -87,6 +87,8 @@ function pushCloud(){
          bestSquat:bestBefore("Sentadilla con barra")||null,
          bestBench:bestBefore("Press de banca")||null,
          bestDeadlift:bestBefore("Peso muerto convencional")||null,
+         bestPullups:bestRepsBefore("Dominadas")||null,
+         bestPushups:bestRepsBefore("Flexiones de brazos")||null,
          updatedAt:new Date().toISOString()},{merge:true}
       ).catch(function(){});
     }
@@ -751,6 +753,8 @@ function rGrupo(){
         if(m.bestSquat)lifts.push("sentadilla "+m.bestSquat+"kg");
         if(m.bestBench)lifts.push("banca "+m.bestBench+"kg");
         if(m.bestDeadlift)lifts.push("muerto "+m.bestDeadlift+"kg");
+        if(m.bestPullups)lifts.push(m.bestPullups+" dominadas");
+        if(m.bestPushups)lifts.push(m.bestPushups+" flexiones");
         if(m.weekVolume)lifts.push(m.weekVolume.toLocaleString("es-AR")+"kg esta semana");
         h+='<div class="group-row"><div class="gr-top"><span class="gr-name">'+esc(m.name||"Alguien")+'</span>'+
           '<span class="gr-streak">'+(m.streak||0)+(m.streak===1?" semana":" semanas")+' · '+(m.weekSessions||0)+' esta semana</span></div>'+

@@ -38,7 +38,7 @@ var EXDB={
  tips:["Rotar la muñeca al subir. En este el agarre no cambia nunca.","Usar los hombros para arrancar el movimiento.","Soltar el peso en la bajada en vez de controlarlo."],
  img:["img/curl-martillo-0.jpg",
       "img/curl-martillo-1.jpg"]},
-"dominadas":{n:"Dominadas",g:"espalda",home:true,
+"dominadas":{n:"Dominadas",g:"espalda",home:true,unit:"bw",
  cue:"Agarre un poco más ancho que los hombros. Subí llevando el pecho a la barra, no el mentón.",
  tips:["Balancearse para subir. Si no te salen limpias, usá la asistida.","Rango parcial: bajá hasta estirar casi del todo cada rep.","Encoger los hombros al colgarte. Activá la espalda antes de subir."],
  img:["img/dominadas-0.jpg",
