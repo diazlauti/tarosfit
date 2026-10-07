@@ -210,6 +210,34 @@ function weekVolume(){
   });
   return v;
 }
+/* mapa de calor: 84 días corridos terminando hoy (12x7, misma filosofía que
+   weekStreak: no alineado a calendario). Se mide en series totales del día
+   y no en kg movidos, porque un día puede ser todo calistenia o isometría. */
+function buildHeat(){
+  var today=Math.floor(Date.now()/86400000);
+  var byDay={};
+  S.sessions.forEach(function(s){
+    var d=Math.floor(new Date(s.date).getTime()/86400000);
+    byDay[d]=(byDay[d]||0)+sessionSets(s);
+  });
+  var max=0;
+  for(var k in byDay)if(byDay[k]>max)max=byDay[k];
+  var weeks=[];
+  for(var w=0;w<12;w++){
+    var days=[];
+    for(var d2=0;d2<7;d2++){
+      var dayNum=today-83+(w*7+d2);
+      var v=byDay[dayNum]||0,lvl=0;
+      if(v>0&&max>0){
+        var ratio=v/max;
+        lvl=ratio<.35?1:ratio<.6?2:ratio<.85?3:4;
+      }
+      days.push({v:v,lvl:lvl,isToday:dayNum===today});
+    }
+    weeks.push(days);
+  }
+  return{weeks:weeks,count:S.sessions.length};
+}
 
 /* ---------- grupos con amigos ---------- */
 var GROUP_ALPHABET="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sin O/0 ni I/1, para que no se confundan al escribirlo
@@ -570,7 +598,17 @@ function rHistorial(){
       '<p>Acá se guarda cada entrenamiento cuando terminás el primero.</p></div>';return;
   }
   var list=S.sessions.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date)});
-  var h="";
+  var heat=buildHeat();
+  var h='<div class="card heatcard"><div class="heat-head"><span class="heat-title">Últimas 12 semanas</span>'+
+    '<span class="heat-count">'+heat.count+' sesiones</span></div>'+
+    '<div class="heat-grid">'+heat.weeks.map(function(wk){
+      return'<div class="heat-col">'+wk.map(function(d){
+        return'<div class="heat-cell heat-'+d.lvl+(d.isToday?" heat-today":"")+'"></div>';
+      }).join("")+'</div>';
+    }).join("")+'</div>'+
+    '<div class="heat-legend"><span>poco</span><span class="heat-cell heat-1"></span>'+
+    '<span class="heat-cell heat-2"></span><span class="heat-cell heat-3"></span>'+
+    '<span class="heat-cell heat-4"></span><span>mucho</span></div></div>';
   list.forEach(function(s){
     var sv=sessionVol(s);
     var headTotal=sv>0?sv.toLocaleString("es-AR")+"kg":sessionReps(s)>0?sessionReps(s)+" reps":sessionSecs(s)+"seg";

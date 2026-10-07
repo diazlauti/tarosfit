@@ -1,6 +1,7 @@
 :root{
     --paper:#EFF2ED; --card:#FBFAF6; --ink:#20281F; --ink-soft:#5B6459; --ink-faint:#6E7A6C;
     --accent:#3F6B4F; --accent-deep:#2C4D37; --accent-soft:#DCE7DE; --rust:#B54A2E; --rust-soft:#F3E1DA;
+    --heat-2:#9DBBA5; --heat-3:#5D8B6B;
     --line:rgba(32,40,31,.12); --grid:rgba(63,107,79,.10);
     --shadow:0 1px 2px rgba(32,40,31,.06),0 2px 10px rgba(32,40,31,.05);
     --surface:#fff;
@@ -258,6 +259,7 @@
     --accent:#5FBE84; --accent-deep:#8FDCA9; --accent-soft:#26362A; --rust:#E08F6C; --rust-soft:#3A2820;
     --line:rgba(255,255,255,.12); --grid:rgba(95,190,132,.08);
     --shadow:0 1px 2px rgba(0,0,0,.45),0 2px 10px rgba(0,0,0,.35);
+    --heat-2:#496D54; --heat-3:#6BA47E;
   }
   input,select{border-color:rgba(255,255,255,.16)}
   .btn.google{border-color:rgba(255,255,255,.16)}
@@ -298,6 +300,21 @@
 .big-chip-n{font-family:var(--mono);font-size:9.5px;color:var(--ink-faint);margin-top:1px}
 .big-cta{height:64px;font-size:18px;box-shadow:0 8px 22px rgba(63,107,79,.28)}
 @media(prefers-reduced-motion:reduce){#bigpanel.on,.big-num{animation:none!important}}
+
+/* ---- mapa de calor: densidad de entrenamiento, últimas 12 semanas ---- */
+.heat-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.heat-title{font-family:var(--display);font-size:21px;color:var(--accent-deep)}
+.heat-count{font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+.heat-grid{display:flex;gap:3px;margin-top:12px}
+.heat-col{display:flex;flex-direction:column;gap:3px;flex:1}
+.heat-cell{aspect-ratio:1;border-radius:3px;background:var(--line)}
+.heat-1{background:var(--accent-soft)}
+.heat-2{background:var(--heat-2)}
+.heat-3{background:var(--heat-3)}
+.heat-4{background:var(--accent-deep)}
+.heat-today{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.heat-legend{display:flex;align-items:center;gap:6px;margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--ink-soft)}
+.heat-legend .heat-cell{display:inline-block;width:11px;height:11px;flex:none}
 
 /* auth screen */
 .auth-screen{position:fixed;inset:0;z-index:100;background:var(--paper);display:flex;
