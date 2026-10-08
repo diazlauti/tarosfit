@@ -2,7 +2,7 @@
     --paper:#EFF2ED; --card:#FBFAF6; --ink:#20281F; --ink-soft:#5B6459; --ink-faint:#6E7A6C;
     --accent:#3F6B4F; --accent-deep:#2C4D37; --accent-soft:#DCE7DE; --rust:#B54A2E; --rust-soft:#F3E1DA;
     --heat-2:#9DBBA5; --heat-3:#5D8B6B;
-    --line:rgba(32,40,31,.12); --grid:rgba(63,107,79,.10);
+    --line:rgba(32,40,31,.12); --grid:rgba(63,107,79,.10); --spiral-dot:rgba(32,40,31,.3);
     --shadow:0 1px 2px rgba(32,40,31,.06),0 2px 10px rgba(32,40,31,.05);
     --surface:#fff;
     --display:"Caveat",cursive;
@@ -19,9 +19,13 @@
   input,select{-webkit-user-select:text;user-select:text}
   input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
   input[type=number]{-moz-appearance:textfield}
+  /* agujeros de encuadernado: círculos marcados, no una banda difusa -- si son
+     demasiado sutiles, el margen de la izquierda se lee como espacio vacío en vez
+     de "lomo de cuaderno espiralado" */
   #spiral{position:fixed;left:0;top:0;bottom:0;width:22px;z-index:5;pointer-events:none;
-    background:repeating-linear-gradient(180deg,transparent 0,transparent 10px,rgba(32,40,31,.10) 10px,rgba(32,40,31,.10) 12px,transparent 12px,transparent 26px)}
-  #spiral::after{content:'';position:absolute;left:21px;top:0;bottom:0;width:1px;background:rgba(32,40,31,.08)}
+    background-image:radial-gradient(circle at 11px 13px,var(--spiral-dot) 3.1px,transparent 3.3px);
+    background-size:22px 26px;background-repeat:repeat-y}
+  #spiral::after{content:'';position:absolute;left:21px;top:0;bottom:0;width:1px;background:var(--line)}
 
   .app-root{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
   header{position:sticky;top:0;z-index:10;background:rgba(239,242,237,.93);backdrop-filter:blur(6px);
@@ -262,7 +266,7 @@
   :root{
     --paper:#171B16; --card:#20251E; --surface:#242A22; --ink:#E9EDE6; --ink-soft:#A9B3A3; --ink-faint:#7E8A79;
     --accent:#5FBE84; --accent-deep:#8FDCA9; --accent-soft:#26362A; --rust:#E08F6C; --rust-soft:#3A2820;
-    --line:rgba(255,255,255,.12); --grid:rgba(95,190,132,.08);
+    --line:rgba(255,255,255,.12); --grid:rgba(95,190,132,.08); --spiral-dot:rgba(255,255,255,.26);
     --shadow:0 1px 2px rgba(0,0,0,.45),0 2px 10px rgba(0,0,0,.35);
     --heat-2:#496D54; --heat-3:#6BA47E;
   }
