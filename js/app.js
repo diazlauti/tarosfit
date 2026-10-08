@@ -395,7 +395,7 @@ function rGuiada(){
   x.sets.forEach(function(st,si){
     var ok=(isTimeEx||isBwEx)?(st.r!==""):(st.w!==""&&st.r!=="");
     var lp=lastArr&&lastArr[si]?lastArr[si]:null;
-    var strike='<svg class="strike-ok" viewBox="0 0 300 20" preserveAspectRatio="none"><path d="M2 12 C60 5, 120 15, 180 8 S262 13, 296 7" fill="none" stroke="var(--rust)" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="240"></path></svg>';
+    var strike='<svg class="strike-ok" viewBox="0 0 300 20" preserveAspectRatio="none"><path d="M2 12 C60 5, 120 15, 180 8 S262 13, 296 7" fill="none" stroke="var(--rust)" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="300"></path></svg>';
     if(isTimeEx){
       h+='<div class="srow-time'+(ok?" ok":"")+'"><span class="n">'+(si+1)+'</span>'+
         '<input type="number" inputmode="numeric" placeholder="'+(lp?lp.r:"segundos")+'" value="'+esc(st.r)+'" data-x="'+i+'" data-s="'+si+'" data-f="r">'+

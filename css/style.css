@@ -37,7 +37,7 @@
   /* ---- animaciones (portadas del prototipo viejo) ---- */
   @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   @keyframes flipin{0%{opacity:0;transform:perspective(900px) rotateY(-13deg) translateX(24px)}100%{opacity:1;transform:none}}
-  @keyframes strike{from{stroke-dashoffset:240}to{stroke-dashoffset:0}}
+  @keyframes strike{from{stroke-dashoffset:300}to{stroke-dashoffset:0}}
   @keyframes slidedown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
   @keyframes stamp{0%{opacity:0;transform:rotate(-15deg) scale(2.3)}58%{opacity:1;transform:rotate(-8deg) scale(.93)}100%{opacity:1;transform:rotate(-8deg) scale(1)}}
   @keyframes burst{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.35)}}
@@ -57,7 +57,7 @@
     animation:burst .85s cubic-bezier(.2,.7,.3,1) both}
   .strike-ok{position:absolute;left:10px;top:50%;height:12px;width:calc(100% - 60px);
     pointer-events:none;overflow:visible;transform:translateY(-50%)}
-  .strike-ok path{stroke-dashoffset:240}
+  .strike-ok path{stroke-dashoffset:300}
   .ok .strike-ok path{animation:strike .45s cubic-bezier(.4,0,.3,1) both}
   @media(prefers-reduced-motion:reduce){
     .view.on,.gflip,.slidedown-in,.stamp-badge,.confetti-bit,.card.current,.chart polyline,.chart circle,.sheet,.strike-ok path{animation:none!important}
