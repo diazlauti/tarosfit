@@ -321,7 +321,7 @@ function rHoy(){
 
   if(!S.pickOpen){
     h+='<div style="text-align:center;margin-top:12px">'+
-       '<button class="ib" style="font-size:12.5px;color:var(--ink-soft);min-width:auto;padding:6px 10px" data-a="open-pick">¿hoy hacés otra? elegir</button></div>';
+       '<button class="ib" style="font-size:var(--fs-2);color:var(--ink-soft);min-width:auto;min-height:44px;padding:6px 10px" data-a="open-pick">¿hoy hacés otra? elegir</button></div>';
   }else{
     h+='<p class="today-line" style="margin-top:14px">Elegí cuál vas a hacer:</p><div class="chips">';
     S.days.forEach(function(d){
@@ -342,7 +342,7 @@ function rGuiada(){
 
   var h='<div class="gbar"><span class="txt">'+(i+1)+' de '+w.ex.length+'</span>'+
     '<div class="gtrack"><div class="gfill" style="width:'+pct+'%"></div></div>'+
-    '<button class="ib" data-a="ask-cancel" aria-label="Cancelar entrenamiento" style="min-width:30px">'+I_TRASH+'</button></div>';
+    '<button class="ib" data-a="ask-cancel" aria-label="Cancelar entrenamiento">'+I_TRASH+'</button></div>';
 
   h+='<div class="gflip">';
   if(meta&&meta.img){
@@ -398,18 +398,22 @@ function rGuiada(){
     var strike='<svg class="strike-ok" viewBox="0 0 300 20" preserveAspectRatio="none"><path d="M2 12 C60 5, 120 15, 180 8 S262 13, 296 7" fill="none" stroke="var(--rust)" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="300"></path></svg>';
     if(isTimeEx){
       h+='<div class="srow-time'+(ok?" ok":"")+'"><span class="n">'+(si+1)+'</span>'+
-        '<input type="number" inputmode="numeric" placeholder="'+(lp?lp.r:"segundos")+'" value="'+esc(st.r)+'" data-x="'+i+'" data-s="'+si+'" data-f="r">'+
+        '<label class="sr-only" for="sr-'+i+'-'+si+'-r">'+esc(x.name)+', serie '+(si+1)+', segundos</label>'+
+        '<input type="number" inputmode="numeric" id="sr-'+i+'-'+si+'-r" placeholder="'+(lp?lp.r:"segundos")+'" value="'+esc(st.r)+'" data-x="'+i+'" data-s="'+si+'" data-f="r">'+
         '<span class="unit">seg</span>'+
         '<span class="ck">'+I_CHECK+'</span>'+strike+'</div>';
     }else if(isBwEx){
       h+='<div class="srow-time'+(ok?" ok":"")+'"><span class="n">'+(si+1)+'</span>'+
-        '<input type="number" inputmode="numeric" placeholder="'+(lp?lp.r:"reps")+'" value="'+esc(st.r)+'" data-x="'+i+'" data-s="'+si+'" data-f="r">'+
+        '<label class="sr-only" for="sr-'+i+'-'+si+'-r">'+esc(x.name)+', serie '+(si+1)+', repeticiones</label>'+
+        '<input type="number" inputmode="numeric" id="sr-'+i+'-'+si+'-r" placeholder="'+(lp?lp.r:"reps")+'" value="'+esc(st.r)+'" data-x="'+i+'" data-s="'+si+'" data-f="r">'+
         '<span class="unit">reps</span>'+
         '<span class="ck">'+I_CHECK+'</span>'+strike+'</div>';
     }else{
       h+='<div class="srow'+(ok?" ok":"")+'"><span class="n">'+(si+1)+'</span>'+
-        '<input type="number" inputmode="decimal" step="any" placeholder="'+(lp?lp.w:"kg")+'" value="'+esc(st.w)+'" data-x="'+i+'" data-s="'+si+'" data-f="w">'+
-        '<input type="number" inputmode="numeric" placeholder="'+(lp?lp.r:"reps")+'" value="'+esc(st.r)+'" data-x="'+i+'" data-s="'+si+'" data-f="r">'+
+        '<label class="sr-only" for="sr-'+i+'-'+si+'-w">'+esc(x.name)+', serie '+(si+1)+', kilos</label>'+
+        '<input type="number" inputmode="decimal" step="any" id="sr-'+i+'-'+si+'-w" placeholder="'+(lp?lp.w:"kg")+'" value="'+esc(st.w)+'" data-x="'+i+'" data-s="'+si+'" data-f="w">'+
+        '<label class="sr-only" for="sr-'+i+'-'+si+'-r">'+esc(x.name)+', serie '+(si+1)+', repeticiones</label>'+
+        '<input type="number" inputmode="numeric" id="sr-'+i+'-'+si+'-r" placeholder="'+(lp?lp.r:"reps")+'" value="'+esc(st.r)+'" data-x="'+i+'" data-s="'+si+'" data-f="r">'+
         '<span class="ck">'+I_CHECK+'</span>'+strike+'</div>';
     }
   });
@@ -612,9 +616,9 @@ function rHistorial(){
   list.forEach(function(s){
     var sv=sessionVol(s);
     var headTotal=sv>0?sv.toLocaleString("es-AR")+"kg":sessionReps(s)>0?sessionReps(s)+" reps":sessionSecs(s)+"seg";
-    h+='<div class="card"><div data-a="toggle" data-s="'+s.id+'" style="cursor:pointer">'+
+    h+='<div class="card"><button type="button" class="toggle-btn" data-a="toggle" data-s="'+s.id+'" aria-expanded="'+(S.openS===s.id?"true":"false")+'">'+
       '<div class="shead"><span class="dt">'+longD(s.date)+'</span>'+
-      '<span class="sm">'+esc(s.dayName)+' · '+sessionSets(s)+' series · '+headTotal+'</span></div></div>'+
+      '<span class="sm">'+esc(s.dayName)+' · '+sessionSets(s)+' series · '+headTotal+'</span></div></button>'+
       '<div class="sdetail'+(S.openS===s.id?" on slidedown-in":"")+'">';
     s.ex.forEach(function(x,xi){
       var ek=effKey(x), timeEx=isTimeKey(ek), bwEx=isBwKey(ek);
@@ -622,23 +626,28 @@ function rHistorial(){
       if(S.editSetsFor===editKey){
         h+='<div class="exb"><div class="en">'+esc(x.name)+'</div>';
         x.sets.forEach(function(t,si){
+          var eid="eh-"+s.id+"-"+xi+"-"+si;
           if(timeEx){
             h+='<div class="editset"><span class="n">'+(si+1)+'</span>'+
-              '<input type="number" inputmode="numeric" value="'+esc(t.r)+'" data-hs="'+s.id+'" data-hx="'+xi+'" data-hsi="'+si+'" data-f="r"><span class="unit">seg</span></div>';
+              '<label class="sr-only" for="'+eid+'-r">'+esc(x.name)+', serie '+(si+1)+', segundos</label>'+
+              '<input type="number" inputmode="numeric" id="'+eid+'-r" value="'+esc(t.r)+'" data-hs="'+s.id+'" data-hx="'+xi+'" data-hsi="'+si+'" data-f="r"><span class="unit">seg</span></div>';
           }else if(bwEx){
             h+='<div class="editset"><span class="n">'+(si+1)+'</span>'+
-              '<input type="number" inputmode="numeric" value="'+esc(t.r)+'" data-hs="'+s.id+'" data-hx="'+xi+'" data-hsi="'+si+'" data-f="r"><span class="unit">reps</span></div>';
+              '<label class="sr-only" for="'+eid+'-r">'+esc(x.name)+', serie '+(si+1)+', repeticiones</label>'+
+              '<input type="number" inputmode="numeric" id="'+eid+'-r" value="'+esc(t.r)+'" data-hs="'+s.id+'" data-hx="'+xi+'" data-hsi="'+si+'" data-f="r"><span class="unit">reps</span></div>';
           }else{
             h+='<div class="editset"><span class="n">'+(si+1)+'</span>'+
-              '<input type="number" inputmode="decimal" step="any" value="'+esc(t.w)+'" data-hs="'+s.id+'" data-hx="'+xi+'" data-hsi="'+si+'" data-f="w"><span class="unit">kg</span>'+
-              '<input type="number" inputmode="numeric" value="'+esc(t.r)+'" data-hs="'+s.id+'" data-hx="'+xi+'" data-hsi="'+si+'" data-f="r"><span class="unit">reps</span></div>';
+              '<label class="sr-only" for="'+eid+'-w">'+esc(x.name)+', serie '+(si+1)+', kilos</label>'+
+              '<input type="number" inputmode="decimal" step="any" id="'+eid+'-w" value="'+esc(t.w)+'" data-hs="'+s.id+'" data-hx="'+xi+'" data-hsi="'+si+'" data-f="w"><span class="unit">kg</span>'+
+              '<label class="sr-only" for="'+eid+'-r">'+esc(x.name)+', serie '+(si+1)+', repeticiones</label>'+
+              '<input type="number" inputmode="numeric" id="'+eid+'-r" value="'+esc(t.r)+'" data-hs="'+s.id+'" data-hx="'+xi+'" data-hsi="'+si+'" data-f="r"><span class="unit">reps</span></div>';
           }
         });
         h+='<div class="actrow"><button class="btn sm" data-a="save-editsess" data-hs="'+s.id+'" data-hx="'+xi+'">Guardar</button>'+
            '<button class="btn sm ghost" data-a="x-editsess">Cancelar</button></div></div>';
       }else{
         h+='<div class="exb"><div class="en">'+esc(x.name)+
-           '<button class="ib" data-a="edit-exsess" data-hs="'+s.id+'" data-hx="'+xi+'" aria-label="Editar" style="min-width:26px;min-height:26px;float:right">'+I_EDIT+'</button></div>'+
+           '<button class="ib" data-a="edit-exsess" data-hs="'+s.id+'" data-hx="'+xi+'" aria-label="Editar" style="float:right">'+I_EDIT+'</button></div>'+
            '<div class="es">'+x.sets.map(function(t){return fmtSet(ek,t)}).join("   ")+'</div></div>';
       }
     });
@@ -750,7 +759,8 @@ function rRutinas(){
   h+='<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">'+
     '<button class="btn sm" data-a="new-day">+ rutina</button></div>';
   if(S.ui.newDay){
-    h+='<div class="card"><div class="frow"><input type="text" id="i-day" class="f2" placeholder="nombre de la rutina"></div>'+
+    h+='<div class="card"><div class="frow"><label class="sr-only" for="i-day">Nombre de la rutina</label>'+
+      '<input type="text" id="i-day" class="f2" placeholder="nombre de la rutina"></div>'+
       '<div class="actrow"><button class="btn sm" data-a="save-day">Crear</button>'+
       '<button class="btn sm ghost" data-a="x-newday">Cancelar</button></div></div>';
   }
@@ -768,15 +778,16 @@ function rRutinas(){
     var isNext=nd&&nd.id===d.id, lastD=lastSessionForDay(d.id);
     h+='<div class="card'+(open&&isNext?' current':'')+'">';
     if(!open){
-      h+='<div data-a="toggle-day" data-d="'+d.id+'" class="day-collapsed">'+
+      h+='<button type="button" data-a="toggle-day" data-d="'+d.id+'" class="day-collapsed" aria-expanded="false">'+
         '<div><h3>'+esc(d.name)+(isNext?' <span class="badge-next">te toca</span>':'')+'</h3>'+
         '<p>'+d.ex.length+(d.ex.length===1?' ejercicio':' ejercicios')+' · '+
         (lastD?"última vez "+daysAgoLabel(lastD.date):"todavía no la hiciste")+'</p></div>'+
-        '<span class="chev">'+I_DOWN+'</span></div></div>';
+        '<span class="chev">'+I_DOWN+'</span></button></div>';
       return;
     }
     if(S.ui.editDay===d.id){
-      h+='<div class="frow"><input type="text" id="i-dayname" class="f2" value="'+esc(d.name)+'"></div>'+
+      h+='<div class="frow"><label class="sr-only" for="i-dayname">Nombre de la rutina</label>'+
+        '<input type="text" id="i-dayname" class="f2" value="'+esc(d.name)+'"></div>'+
         '<div class="actrow"><button class="btn sm" data-a="save-dayname" data-d="'+d.id+'">Guardar</button>'+
         '<button class="btn sm ghost" data-a="x-editday">Cancelar</button></div>';
     }else if(S.ui.delDay===d.id){
@@ -796,8 +807,11 @@ function rRutinas(){
     d.ex.forEach(function(x,xi){
       if(S.ui.editEx===x.id){
         h+='<div class="frow" style="border-top:1px dashed var(--line);padding-top:8px">'+
+          '<label class="sr-only" for="i-exn">Nombre del ejercicio</label>'+
           '<input type="text" id="i-exn" class="f2" value="'+esc(exName(x))+'">'+
+          '<label class="sr-only" for="i-exs">Series</label>'+
           '<input type="text" id="i-exs" class="f1" value="'+esc(x.sets)+'" inputmode="numeric" placeholder="series">'+
+          '<label class="sr-only" for="i-exr">Repeticiones</label>'+
           '<input type="text" id="i-exr" class="f1" value="'+esc(x.reps)+'" placeholder="reps"></div>'+
           '<div class="actrow"><button class="btn sm" data-a="save-ex" data-d="'+d.id+'" data-x="'+x.id+'">Guardar</button>'+
           '<button class="btn sm ghost" data-a="x-editex">Cancelar</button></div>';
@@ -816,8 +830,11 @@ function rRutinas(){
     });
     if(S.ui.addEx===d.id){
       h+='<div class="frow" style="border-top:1px dashed var(--line);padding-top:10px">'+
+        '<label class="sr-only" for="i-nexn">Nombre del ejercicio nuevo</label>'+
         '<input type="text" id="i-nexn" class="f2" placeholder="ejercicio">'+
+        '<label class="sr-only" for="i-nexs">Series</label>'+
         '<input type="text" id="i-nexs" class="f1" value="3" inputmode="numeric" placeholder="series">'+
+        '<label class="sr-only" for="i-nexr">Repeticiones</label>'+
         '<input type="text" id="i-nexr" class="f1" value="10-12" placeholder="reps"></div>'+
         '<div class="actrow"><button class="btn sm" data-a="save-newex" data-d="'+d.id+'">Agregar</button>'+
         '<button class="btn sm ghost" data-a="x-newex">Cancelar</button></div>';
@@ -852,9 +869,10 @@ function rAjustes(){
     '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
     '<button class="btn sm ghost" data-a="export">Exportar copia</button>'+
     '<button class="btn sm ghost" data-a="import-open">Importar copia</button>'+
-    '</div><input type="file" id="import-file" accept="application/json,.json" style="display:none"></div>';
+    '</div><label class="sr-only" for="import-file">Elegir archivo de copia de seguridad</label>'+
+    '<input type="file" id="import-file" accept="application/json,.json" style="display:none"></div>';
 
-  h+='<div style="text-align:center;margin-top:14px"><button class="ib" style="font-size:12px;color:var(--ink-faint);min-width:auto;padding:6px 10px" data-a="ask-reset">Borrar todos los datos</button></div>';
+  h+='<div style="text-align:center;margin-top:14px"><button class="ib" style="font-size:12px;color:var(--ink-faint);min-width:auto;min-height:44px;padding:6px 10px" data-a="ask-reset">Borrar todos los datos</button></div>';
 
   el("v-ajustes").innerHTML=h;
 }
@@ -890,7 +908,7 @@ function rGrupo(){
       '<button class="btn sm ghost" data-a="group-create">Crear grupo</button>'+
       '<button class="btn sm ghost" data-a="group-join-open">Unirme con código</button></div>';
     if(S.ui.groupJoin){
-      h+='<div class="frow" style="margin-top:10px">'+
+      h+='<div class="frow" style="margin-top:10px"><label class="sr-only" for="i-groupcode">Código del grupo</label>'+
         '<input type="text" id="i-groupcode" class="f2" placeholder="Código (ej. AB12CD)" maxlength="6" style="text-transform:uppercase"></div>'+
         '<div class="actrow"><button class="btn sm" data-a="group-join-submit">Unirme</button>'+
         '<button class="btn sm ghost" data-a="group-join-cancel">Cancelar</button></div>';

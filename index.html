@@ -92,9 +92,9 @@
 </nav>
 
 <div id="bigpanel"></div>
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 <div class="back" id="modal">
-  <div class="sheet"><h3 id="mtitle"></h3><p id="mtext"></p>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mtitle" aria-describedby="mtext"><h3 id="mtitle"></h3><p id="mtext"></p>
     <div class="acts"><button class="btn ghost" id="mno">Cancelar</button><button class="btn danger" id="myes">Confirmar</button></div>
   </div>
 </div>
