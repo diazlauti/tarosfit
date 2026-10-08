@@ -16,6 +16,9 @@ function toast(m){var t=el("toast");if(!t)return;t.textContent=m;t.classList.add
    (compuestos primero, así cuando un día pide un solo ejercicio del grupo
    cae el más importante) ---------- */
 var GROUPS=["cuadriceps","isquios","pecho","espalda","hombro","brazos","gemelos","core"];
+/* sesión corta: solo los movimientos grandes, nos saltamos brazos/gemelos/core
+   como trabajo directo (ya los tocan de refilón los compuestos de arriba) */
+var SHORT_GROUPS=["cuadriceps","isquios","pecho","espalda","hombro"];
 var UPPER=["pecho","espalda","hombro","brazos"];
 var LOWER=["cuadriceps","isquios","gemelos","core"];
 var ALL=9; // más que el máximo posible por grupo: "tomá todos los que haya"
@@ -42,7 +45,19 @@ var HOME_PRIORITY={
   gemelos:["elevacion-talones","elevacion-talones-unipodal"],
   core:["plancha","escaladores","elevacion-piernas"]
 };
-var currentHome=false; // contexto de buildRoutine(): true = solo calistenia
+/* en casa pero con mancuernas/bandas: compuestos con peso primero, calistenia
+   de respaldo para cuando el peso que tenés no alcanza */
+var HOME_EQUIP_PRIORITY={
+  cuadriceps:["zancadas","sentadilla-salto","zancadas-caminando","sentadilla-pared"],
+  isquios:["peso-muerto-rumano","puente-gluteo","puente-unipodal","peso-muerto-pierna"],
+  pecho:["press-mancuernas","press-inclinado","aperturas","flexiones","flexiones-inclinadas"],
+  espalda:["remo-mancuerna","dominadas","remo-invertido","superman"],
+  hombro:["press-hombro-mancuernas","elevaciones-laterales","flexiones-pike","flexiones-pike-elevado"],
+  brazos:["curl-martillo","flexiones-diamante","fondos-banco","dominadas-supinas"],
+  gemelos:["gemelos","elevacion-talones","elevacion-talones-unipodal"],
+  core:["plancha","escaladores","elevacion-piernas"]
+};
+var currentPriority=PRIORITY; // contexto de buildRoutine(): qué lista de ejercicios usar por grupo
 
 /* qué grupos entran cuando el usuario elige reforzar uno en particular */
 var FOCUS_MAP={pecho:["pecho"],espalda:["espalda"],piernas:["cuadriceps","isquios"],hombro:["hombro"],brazos:["brazos"]};
@@ -60,17 +75,19 @@ var CARE={
 function poolFor(group,limits){
   var excl=[];
   limits.forEach(function(l){(CARE[l]||[]).forEach(function(k){excl.push(k)})});
-  var order=((currentHome?HOME_PRIORITY:PRIORITY)[group]||[]).filter(function(k){return EXDB[k]});
+  var order=(currentPriority[group]||[]).filter(function(k){return EXDB[k]});
   var pool=order.filter(function(k){return excl.indexOf(k)===-1});
   return pool.length?pool:order;
 }
 
-function setsRepsFor(goal,level){
+function setsRepsFor(goal,level,duration){
   var base={hipertrofia:{sets:3,reps:"8-12"},fuerza:{sets:4,reps:"5-6"},salud:{sets:3,reps:"12-15"}}[goal]||
     {sets:3,reps:"10-12"};
   var sets=base.sets;
   if(level==="principiante")sets=Math.max(2,sets-1);
   if(level==="avanzado")sets=sets+1;
+  if(duration==="corto")sets=Math.max(2,sets-1);
+  if(duration==="largo")sets=sets+1;
   return{sets:sets,reps:base.reps};
 }
 
@@ -88,10 +105,11 @@ function bump(base,groups,focus){
 }
 
 /* un ejercicio por grupo (dos si el grupo está en "focus"), con "offset"
-   para variar entre días */
-function fullBodyDay(name,limits,offset,sr,focus){
+   para variar entre días. "groupsList" permite recortar a menos grupos
+   cuando la sesión tiene que ser corta (ver SHORT_GROUPS). */
+function fullBodyDay(name,limits,offset,sr,focus,groupsList){
   var ex=[];
-  GROUPS.forEach(function(g){
+  (groupsList||GROUPS).forEach(function(g){
     var pool=poolFor(g,limits);
     if(!pool.length)return;
     var n=focus.indexOf(g)>-1?2:1;
@@ -113,11 +131,12 @@ function partDay(name,groups,limits,offset,sr,perGroup){
 }
 
 function buildRoutine(ans){
-  currentHome=ans.home==="casa";
-  var sr=setsRepsFor(ans.goal,ans.level),lim=ans.limits||[],focus=focusGroups(ans);
+  currentPriority=ans.home!=="casa"?PRIORITY:(ans.equipo==="mancuernas"?HOME_EQUIP_PRIORITY:HOME_PRIORITY);
+  var sr=setsRepsFor(ans.goal,ans.level,ans.duration),lim=ans.limits||[],focus=focusGroups(ans);
+  var fbGroups=ans.duration==="corto"?SHORT_GROUPS:GROUPS;
   if(ans.days===2)return[
-    fullBodyDay("Rutina A",lim,0,sr,focus),
-    fullBodyDay("Rutina B",lim,1,sr,focus)
+    fullBodyDay("Rutina A",lim,0,sr,focus,fbGroups),
+    fullBodyDay("Rutina B",lim,1,sr,focus,fbGroups)
   ];
   if(ans.days===4)return[
     partDay("Superior A",UPPER,lim,0,sr,bump({_:1},UPPER,focus)),
@@ -134,18 +153,26 @@ function buildRoutine(ans){
     partDay("Brazos y core",["brazos","core"],lim,1,sr,bump({brazos:ALL,core:2},["brazos","core"],focus))
   ];
   return[ // 3 días, o cualquier otro valor: cuerpo completo clásico
-    fullBodyDay("Rutina A",lim,0,sr,focus),
-    fullBodyDay("Rutina B",lim,1,sr,focus),
-    fullBodyDay("Rutina C",lim,2,sr,focus)
+    fullBodyDay("Rutina A",lim,0,sr,focus,fbGroups),
+    fullBodyDay("Rutina B",lim,1,sr,focus,fbGroups),
+    fullBodyDay("Rutina C",lim,2,sr,focus,fbGroups)
   ];
 }
 
 /* ---------- preguntas ---------- */
-var STEPS=[
+/* cada paso puede llevar "when(ans)" para mostrarse solo en ciertos casos
+   (ej: equipo en casa solo aplica si vas a entrenar en casa) */
+var ALL_STEPS=[
  {key:"home",type:"single",q:"¿Dónde vas a entrenar?",
   opts:[
    {v:"gym",l:"Gimnasio",d:"Con pesas, máquinas y barras"},
    {v:"casa",l:"En casa, sin equipamiento",d:"Calistenia: solo con tu propio peso"}
+  ]},
+ {key:"equipo",type:"single",q:"¿Tenés algo de equipamiento en casa?",
+  when:function(a){return a.home==="casa"},
+  opts:[
+   {v:"ninguno",l:"Solo mi peso corporal",d:"Calistenia pura"},
+   {v:"mancuernas",l:"Tengo mancuernas o bandas",d:"Suma algo de peso extra a la rutina"}
   ]},
  {key:"goal",type:"single",q:"¿Cuál es tu objetivo principal?",
   opts:[
@@ -166,6 +193,12 @@ var STEPS=[
    {v:4,l:"4 días",d:"Tren superior e inferior alternados"},
    {v:5,l:"5 días",d:"Un grupo muscular grande por día"}
   ]},
+ {key:"duration",type:"single",q:"¿Cuánto tiempo querés que dure cada entrenamiento?",
+  opts:[
+   {v:"corto",l:"20 a 30 minutos",d:"Lo esencial: los movimientos grandes, sin vueltas"},
+   {v:"medio",l:"40 a 50 minutos",d:"La duración típica de una rutina completa"},
+   {v:"largo",l:"60 minutos o más",d:"Sumamos una serie extra en todo"}
+  ]},
  {key:"focus",type:"single",q:"¿Querés darle prioridad a algún grupo en particular?",
   note:"Le suma trabajo extra a ese grupo durante la semana.",
   opts:[
@@ -184,15 +217,16 @@ var STEPS=[
    {v:"hombros",l:"Hombros"}
   ]}
 ];
+function visibleSteps(){return ALL_STEPS.filter(function(s){return !s.when||s.when(ans)})}
 
 var GEN_STEPS=["Elegimos el tipo de rutina","Calculamos series y repeticiones","Elegimos los ejercicios"];
 var GEN_MS=1150;
 
 var ans,idx,draft;
-function reset(){ans={home:null,goal:null,level:null,days:null,focus:null,limits:[]};idx=0;draft=null}
+function reset(){ans={home:null,equipo:null,goal:null,level:null,days:null,duration:null,focus:null,limits:[]};idx=0;draft=null}
 
 function labelFor(stepKey,v){
-  var st=STEPS.filter(function(s){return s.key===stepKey})[0];
+  var st=ALL_STEPS.filter(function(s){return s.key===stepKey})[0];
   var o=st&&st.opts.filter(function(o){return o.v===v})[0];
   return o?o.l:v;
 }
@@ -200,10 +234,34 @@ function labelFor(stepKey,v){
 function summaryLine(){
   var bits=[labelFor("home",ans.home).toLowerCase()+", "+labelFor("goal",ans.goal).toLowerCase()+
     ", nivel "+labelFor("level",ans.level).toLowerCase(),
-    ans.days+" días por semana"];
+    ans.days+" días por semana · "+labelFor("duration",ans.duration).toLowerCase()];
+  if(ans.home==="casa"&&ans.equipo==="mancuernas")bits.push("con mancuernas o bandas");
   if(ans.focus&&ans.focus!=="ninguno")bits.push("prioridad en "+labelFor("focus",ans.focus).toLowerCase());
   if(ans.limits.length)bits.push("sin ejercicios de riesgo para "+ans.limits.map(function(l){return labelFor("limits",l).toLowerCase()}).join(" y "));
   return bits.join(" · ");
+}
+
+/* explica en criollo por qué salió esta rutina y no otra -- todo reglas fijas
+   a partir de las respuestas, nada de IA ni texto genérico */
+function explainLines(ans){
+  var L=[];
+  var splitDesc=ans.days===2?"dos rutinas de cuerpo completo alternadas"
+    :ans.days===4?"tren superior e inferior alternados"
+    :ans.days===5?"un grupo muscular grande por día"
+    :"tres rutinas de cuerpo completo alternadas";
+  L.push("Con "+ans.days+" días por semana, "+splitDesc+" es lo que mejor reparte el trabajo entre los grupos musculares.");
+  var goalDesc=ans.goal==="fuerza"?"pesos más altos y series cortas de 5 a 6, para ganar fuerza"
+    :ans.goal==="salud"?"series más largas y esfuerzo moderado, para salud y tonificar"
+    :"series de 8 a 12 repeticiones, el rango más efectivo para ganar músculo";
+  L.push((ans.level==="principiante"?"Arrancamos con una serie menos por ser principiante, y ":
+    ans.level==="avanzado"?"Sumamos una serie extra por tu experiencia, y ":"")+
+    "usamos "+goalDesc+".");
+  if(ans.home==="casa"&&ans.equipo==="mancuernas")L.push("Como tenés mancuernas o bandas, sumamos algunos ejercicios con peso extra además de la calistenia.");
+  if(ans.duration==="corto")L.push("Como tenés poco tiempo, nos enfocamos en los movimientos grandes y dejamos afuera el trabajo aislado de brazos, gemelos y core.");
+  if(ans.duration==="largo")L.push("Como tenés más tiempo, sumamos una serie extra en cada ejercicio.");
+  if(ans.focus&&ans.focus!=="ninguno")L.push("Le sumamos un ejercicio extra a "+labelFor("focus",ans.focus).toLowerCase()+" porque lo marcaste como prioridad.");
+  if(ans.limits.length)L.push("Evitamos los ejercicios de más riesgo para "+ans.limits.map(function(l){return labelFor("limits",l).toLowerCase()}).join(" y ")+"; elegimos variantes más suaves del mismo grupo.");
+  return L;
 }
 
 function dots(total,cur){
@@ -215,10 +273,11 @@ function dots(total,cur){
 function render(){
   var root=el("wizard-screen");
   if(!root)return;
+  var steps=visibleSteps();
   var h='<div class="wiz-wrap wiz-step">';
-  if(idx<STEPS.length){
-    var st=STEPS[idx];
-    h+='<div class="wiz-dots">'+dots(STEPS.length+1,idx)+'</div>';
+  if(idx<steps.length){
+    var st=steps[idx];
+    h+='<div class="wiz-dots">'+dots(steps.length+1,idx)+'</div>';
     if(idx===0)h+='<h1>Armemos tu rutina</h1><p class="tag">Unas preguntas rápidas para adaptarla a vos.</p>';
     h+='<p class="wiz-q">'+esc(st.q)+'</p>';
     if(st.note)h+='<p class="wiz-note">'+esc(st.note)+'</p>';
@@ -235,9 +294,12 @@ function render(){
     if(idx===0)h+='<button type="button" class="wiz-skip" data-w="skip">Prefiero la rutina clásica de 3 días</button>';
   }else{
     if(!draft)draft=buildRoutine(ans);
-    h+='<div class="wiz-dots">'+dots(STEPS.length+1,idx)+'</div>'+
+    h+='<div class="wiz-dots">'+dots(steps.length+1,idx)+'</div>'+
       '<p class="wiz-q">Tu rutina va a quedar así</p>'+
-      '<p class="wiz-note">'+esc(summaryLine())+'</p>';
+      '<p class="wiz-note">'+esc(summaryLine())+'</p>'+
+      '<div class="card wiz-why"><div class="wiz-why-h">¿por qué esta rutina?</div><ul>'+
+      explainLines(ans).map(function(l){return '<li>'+esc(l)+'</li>'}).join("")+
+      '</ul></div>';
     draft.forEach(function(d,di){
       h+='<div class="card" style="margin-bottom:10px"><h4 class="wiz-day">'+esc(d.name)+'</h4>';
       d.ex.forEach(function(x,xi){
@@ -310,7 +372,7 @@ document.addEventListener("click",function(ev){
       render();
     }else toast("no hay otro ejercicio de ese grupo para elegir");
   }
-  else if(w==="skip"){finish({home:"gym",goal:"hipertrofia",level:"intermedio",days:3,focus:"ninguno",limits:[]})}
+  else if(w==="skip"){finish({home:"gym",equipo:"ninguno",goal:"hipertrofia",level:"intermedio",days:3,duration:"medio",focus:"ninguno",limits:[]})}
   else if(w==="gen"){applyDays(draft||buildRoutine(ans))}
 });
 
