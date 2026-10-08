@@ -13,6 +13,7 @@
        en claro, pero en oscuro esos colores son claros y el blanco no cumple
        contraste -- por eso es una variable y no "#fff" fijo en cada botón */
     --on-accent:#fff;
+    --skel-shine:rgba(255,255,255,.7);
     /* escala de espaciado 4/8/16/24/32 */
     --space-1:4px; --space-2:8px; --space-3:16px; --space-4:24px; --space-5:32px;
     /* escala de radios */
@@ -106,6 +107,12 @@
      <label>, pero no todos tienen lugar visual (ej. los campos de serie,
      donde el "kg"/"reps" al lado ya cumple esa función visualmente) */
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  /* skeleton: misma forma/tamaño que el contenido final, para que no "salte"
+     el layout cuando llega el dato real */
+  .skeleton{background:linear-gradient(90deg,var(--line) 25%,var(--skel-shine) 37%,var(--line) 63%);
+    background-size:400% 100%;animation:skel-shimmer 1.4s ease infinite}
+  @keyframes skel-shimmer{0%{background-position:100% 50%}100%{background-position:0 50%}}
+  @media(prefers-reduced-motion:reduce){.skeleton{animation:none;opacity:.7}}
   .empty{text-align:center;padding:34px 18px;color:var(--ink-soft)}
   .empty .big{font-family:var(--display);font-size:20px;color:var(--ink);display:block;margin-bottom:6px}
   .empty p{font-size:14.5px;line-height:1.5;margin:0 0 14px}
@@ -294,6 +301,7 @@
     /* --accent/--rust son claros en este tema: el texto encima tiene que ser
        oscuro para cumplir contraste (blanco sobre #5FBE84 da 2.3:1, no pasa) */
     --on-accent:var(--paper);
+    --skel-shine:rgba(255,255,255,.07);
     --shadow:0 1px 2px rgba(0,0,0,.45),0 2px 10px rgba(0,0,0,.35);
     --shadow-lg:0 4px 16px rgba(0,0,0,.55),0 10px 32px rgba(0,0,0,.4);
     --heat-2:#496D54; --heat-3:#6BA47E;

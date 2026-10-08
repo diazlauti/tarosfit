@@ -28,7 +28,7 @@ var SEED=[
 
 var S={days:[],sessions:[],tab:"hoy",ui:{},work:null,workDate:null,gi:0,
   progEx:null,openS:null,summary:null,expandDay:null,pickOpen:false,swapOpen:null,swapAll:false,editSetsFor:null,
-  groupId:null,groupBoard:null,groupBusy:false,showTips:false,big:false,bigSi:0,
+  groupId:null,groupBoard:null,groupBusy:false,groupError:false,cloudError:false,showTips:false,big:false,bigSi:0,
   timer:{total:90,left:90,run:false,iv:null,endAt:0}};
 var pending=null;
 
@@ -103,10 +103,10 @@ function pushCloud(){
    confundir "todavía no llegó de la nube" con "no tiene rutina" */
 function attachCloud(uid){
   cloudUid=uid;cloudReady=false;
-  if(!window.firebase){cloudReady=true;return Promise.resolve(false)}
+  if(!window.firebase){cloudReady=true;S.cloudError=true;return Promise.resolve(false)}
   try{
     return firebase.firestore().collection("users").doc(uid).get().then(function(snap){
-      if(!snap.exists){cloudReady=true;return false}
+      if(!snap.exists){cloudReady=true;S.cloudError=false;return false}
       var d=snap.data()||{};
       var had=Array.isArray(d.days)&&d.days.length>0;
       if(Array.isArray(d.days))S.days=d.days;
@@ -115,11 +115,17 @@ function attachCloud(uid){
       /* solo cachear en local, sin volver a empujar a la nube lo que
          acabamos de leer de ahí mismo: cloudReady se marca recién después */
       Store.set("gym-days",S.days);Store.set("gym-sessions",S.sessions);
-      cloudReady=true;
+      cloudReady=true;S.cloudError=false;
       if(S.groupId)refreshBoard();
       return had;
-    }).catch(function(){cloudReady=true;return false});
-  }catch(e){cloudReady=true;return Promise.resolve(false)}
+    /* no bloqueamos al usuario por un error de red: sigue con lo local
+       (offline-first), pero avisamos en Ajustes que no sincronizó */
+    }).catch(function(){cloudReady=true;S.cloudError=true;return false});
+  }catch(e){cloudReady=true;S.cloudError=true;return Promise.resolve(false)}
+}
+function retryCloudSync(){
+  if(!cloudUid)return;
+  attachCloud(cloudUid).then(function(){render();toast(S.cloudError?"sigue sin conectar":"sincronizado")});
 }
 function detachCloud(){cloudUid=null;cloudReady=false}
 function saveDays(){return Store.set("gym-days",S.days)}
@@ -246,12 +252,12 @@ function setGroup(code){S.groupId=code;S.groupBoard=null;pushCloud();refreshBoar
 function leaveGroup(){S.groupId=null;S.groupBoard=null;pushCloud();render()}
 function refreshBoard(){
   if(!S.groupId||!window.firebase){render();return}
-  S.groupBusy=true;render();
+  S.groupBusy=true;S.groupError=false;render();
   firebase.firestore().collection("groups").doc(S.groupId).collection("members").get().then(function(qs){
     var arr=[];qs.forEach(function(doc){arr.push(doc.data())});
     arr.sort(function(a,b){return (b.streak||0)-(a.streak||0)||(b.weekSessions||0)-(a.weekSessions||0)});
-    S.groupBoard=arr;S.groupBusy=false;render();
-  }).catch(function(){S.groupBusy=false;render();toast("no se pudo cargar el grupo")});
+    S.groupBoard=arr;S.groupBusy=false;S.groupError=false;render();
+  }).catch(function(){S.groupBusy=false;S.groupError=true;render();toast("no se pudo cargar el grupo")});
 }
 
 /* ---------- navegación ---------- */
@@ -861,6 +867,9 @@ function rAjustes(){
   h+='<div class="card" style="margin-top:12px">'+
     '<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 6px">'+
     'Conectado como <strong>'+esc(window.AppUserEmail||"")+'</strong>. Tu rutina e historial se sincronizan solos entre tus dispositivos.</p>'+
+    (S.cloudError?'<p role="status" style="font-size:12.5px;color:var(--rust);background:var(--rust-soft);border-radius:10px;padding:8px 10px;margin:0 0 10px">'+
+      'No se pudo sincronizar con la nube. Lo que hagas se guarda en este dispositivo de todas formas.'+
+      ' <button class="linkbtn" data-a="retry-cloud" style="color:var(--rust)">Reintentar</button></p>':'')+
     '<button class="btn sm ghost" data-a="signout">Cerrar sesión</button></div>';
 
   h+='<div class="card" style="margin-top:12px">'+
@@ -927,7 +936,15 @@ function rGrupo(){
       '<p style="margin:0 0 12px"><span id="group-code" class="tg" style="font-size:14.5px;letter-spacing:.06em">'+esc(S.groupId)+'</span> '+
       '<button class="linkbtn" data-a="group-copy">copiar código</button></p>';
     if(S.groupBusy&&!S.groupBoard){
-      h+='<p style="font-size:12.5px;color:var(--ink-faint)">cargando…</p>';
+      h+='<p class="sr-only" role="status" aria-live="polite">Cargando el grupo…</p><div class="group-board">'+
+        [0,1].map(function(){
+          return '<div class="group-row" aria-hidden="true">'+
+            '<div class="skeleton" style="height:13px;width:65%;border-radius:4px;margin-bottom:6px"></div>'+
+            '<div class="skeleton" style="height:11px;width:40%;border-radius:4px"></div></div>';
+        }).join('')+'</div>';
+    }else if(S.groupError){
+      h+='<p role="alert" style="font-size:12.5px;color:var(--rust);background:var(--rust-soft);border-radius:10px;padding:10px 12px">'+
+        'No se pudo cargar el grupo. <button class="linkbtn" data-a="group-refresh" style="color:var(--rust)">Reintentar</button></p>';
     }else if(S.groupBoard&&S.groupBoard.length){
       h+='<div class="group-board">';
       S.groupBoard.forEach(function(m){
@@ -1133,6 +1150,7 @@ document.addEventListener("click",function(ev){
   else if(a==="export"){if(exportBackup())toast("copia descargada")}
   else if(a==="import-open"){var fi=el("import-file");if(fi)fi.click()}
   else if(a==="signout"){firebase.auth().signOut().then(function(){location.reload()})}
+  else if(a==="retry-cloud"){retryCloudSync()}
   else if(a==="ask-reset"){ask("Borrar todos los datos","Se elimina tu rutina y todo el historial de este teléfono y de tu cuenta en la nube. No se puede deshacer.",function(){
     S.days=[];S.sessions=[];S.work=null;S.summary=null;S.ui={};S.expandDay=null;
     saveDays();saveSess();clearDraft();render();toast("datos borrados")})}
@@ -1295,10 +1313,21 @@ document.addEventListener("visibilitychange",function(){
    se espera la respuesta de la nube antes de arrancar: así, en un
    dispositivo nuevo con la misma cuenta, no se confunde "todavía no
    llegó la rutina real" con "usuario nuevo" y no se pisa nada. */
+/* skeleton con la misma forma que la pantalla Hoy real (pill + card grande +
+   fecha + card de ejercicio + botón), para que no haya salto de layout
+   cuando llega la rutina de verdad */
+function hoySkeletonHTML(){
+  return '<p class="sr-only" role="status" aria-live="polite">Cargando tu rutina…</p>'+
+    '<div class="skeleton" style="height:60px;border-radius:14px;margin-bottom:12px" aria-hidden="true"></div>'+
+    '<div class="skeleton" style="height:84px;border-radius:14px;margin-bottom:12px" aria-hidden="true"></div>'+
+    '<div class="skeleton" style="height:52px;border-radius:12px;margin-bottom:12px" aria-hidden="true"></div>'+
+    '<div class="skeleton" style="height:68px;border-radius:14px;margin-bottom:12px" aria-hidden="true"></div>'+
+    '<div class="skeleton" style="height:48px;border-radius:10px" aria-hidden="true"></div>';
+}
 window.AppCloud={
   start:function(uid){
     detachCloud();
-    el("v-hoy").innerHTML='<p style="text-align:center;color:var(--ink-soft);padding:30px">cargando…</p>';
+    el("v-hoy").innerHTML=hoySkeletonHTML();
     el("v-hoy").classList.add("on");
     attachCloud(uid).then(boot);
   },
