@@ -67,13 +67,13 @@
 
   .card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:14px;margin-bottom:12px;border:1px solid rgba(32,40,31,.06)}
   .card.current{border:1.5px solid var(--accent);animation:glow 2.6s ease-in-out infinite}
-  .btn{font-family:var(--body);font-weight:600;font-size:14px;border:none;cursor:pointer;border-radius:10px;
-    padding:10px 14px;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:transform .08s}
+  .btn{font-family:var(--body);font-weight:600;font-size:15px;border:none;cursor:pointer;border-radius:10px;
+    padding:11px 16px;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:transform .08s}
   .btn:active{transform:scale(.96)}
   .btn.ghost{background:transparent;color:var(--accent-deep);border:1.5px solid var(--accent-soft)}
   .btn.danger{background:var(--rust)}
   .btn.sm{padding:8px 11px;font-size:12.5px;border-radius:8px}
-  .btn.block{width:100%;font-size:15px;padding:13px}
+  .btn.block{width:100%;font-size:17px;padding:15px}
   .btn:disabled{opacity:.4;cursor:default}
   .ib{background:none;border:none;cursor:pointer;color:var(--ink-soft);display:inline-flex;align-items:center;
     justify-content:center;min-width:38px;min-height:38px;padding:0;flex-shrink:0}
@@ -158,9 +158,9 @@
   .gnav .btn{flex:1}
   .glast{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin:0 0 8px}
 
-  .srow{position:relative;display:grid;grid-template-columns:24px 1fr 1fr 30px;gap:6px;align-items:center;margin-bottom:6px}
-  .srow-time{position:relative;display:grid;grid-template-columns:24px 1fr auto 30px;gap:6px;align-items:center;margin-bottom:6px}
-  .srow-time .unit{font-family:var(--mono);font-size:12.5px;color:var(--ink-soft)}
+  .srow{position:relative;display:grid;grid-template-columns:24px 1fr 1fr 30px;gap:6px;align-items:center;margin-bottom:8px}
+  .srow-time{position:relative;display:grid;grid-template-columns:24px 1fr auto 30px;gap:6px;align-items:center;margin-bottom:8px}
+  .srow-time .unit{font-family:var(--mono);font-size:13.5px;color:var(--ink-soft)}
   .srow-time input{text-align:center;font-family:var(--mono)}
   .srow-time .ck{width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:var(--rust);opacity:0;transition:opacity .15s}
   .srow-time .ck svg{width:16px;height:16px}
@@ -170,9 +170,12 @@
   .srow .ck{width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:var(--rust);opacity:0;transition:opacity .15s}
   .srow .ck svg{width:16px;height:16px}
   .srow.ok .ck{opacity:1}
-  .addset{font-size:12.5px;color:var(--accent-deep);background:none;border:1px dashed var(--accent);
-    border-radius:8px;padding:7px 11px;cursor:pointer;font-family:var(--body)}
-  .restbtn{font-size:12.5px;color:#fff;background:var(--accent);border:none;border-radius:8px;padding:7px 11px;cursor:pointer;font-family:var(--body);font-weight:600}
+  /* los campos de serie son lo que más se toca en medio de un entreno (manos
+     transpiradas, cansado): más grandes y con más peso visual que un input normal */
+  .srow input,.srow-time input{font-size:19px;font-weight:700;padding:13px 8px}
+  .addset{font-size:13.5px;color:var(--accent-deep);background:none;border:1px dashed var(--accent);
+    border-radius:9px;padding:9px 13px;cursor:pointer;font-family:var(--body)}
+  .restbtn{font-size:13.5px;color:#fff;background:var(--accent);border:none;border-radius:9px;padding:9px 13px;cursor:pointer;font-family:var(--body);font-weight:600}
 
   .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;-webkit-overflow-scrolling:touch}
   .chip{font-weight:600;font-size:13.5px;padding:11px 15px;border-radius:20px;border:1.5px solid var(--accent-soft);
@@ -224,10 +227,10 @@
 
   nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom));
     background:rgba(251,250,246,.95);backdrop-filter:blur(8px);border-top:1px dashed var(--line)}
-  .tab{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;
-    color:var(--ink-faint);cursor:pointer;font-family:var(--body);font-size:10.5px;font-weight:600}
+  .tab{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px;
+    color:var(--ink-faint);cursor:pointer;font-family:var(--body);font-size:11.5px;font-weight:600}
   .tab.on{color:var(--accent-deep)}
-  .tab svg{width:21px;height:21px}
+  .tab svg{width:23px;height:23px}
 
   #fab{position:fixed;right:15px;bottom:calc(80px + env(safe-area-inset-bottom));z-index:19;width:50px;height:50px;
     border-radius:50%;background:var(--accent);color:#fff;border:none;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;cursor:pointer}
