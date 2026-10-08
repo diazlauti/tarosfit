@@ -344,10 +344,13 @@
 .inapp-warn.show{display:block}
 
 /* wizard de rutina */
+/* mismo criterio que #app-root/main: centrado vertical si el paso actual
+   es corto (pocas opciones), sin efecto si es largo (review con varios días) */
 .wizard-screen{position:fixed;inset:0;z-index:110;background:var(--paper);overflow-y:auto;
+  display:flex;flex-direction:column;justify-content:center;
   padding:28px 18px calc(28px + env(safe-area-inset-bottom)) 18px}
 .wizard-screen.hidden{display:none}
-.wiz-wrap{max-width:400px;margin:0 auto}
+.wiz-wrap{max-width:400px;margin:0 auto;width:100%;flex-shrink:0}
 .wiz-wrap h1{font-family:var(--display);font-size:24px;color:var(--accent-deep);margin:0 0 4px;text-align:center}
 .wiz-wrap>.tag{font-size:13px;color:var(--ink-soft);margin:0 0 22px;text-align:center}
 .wiz-dots{display:flex;justify-content:center;gap:6px;margin-bottom:20px}
