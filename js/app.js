@@ -27,7 +27,7 @@ var SEED=[
 ];
 
 var S={days:[],sessions:[],tab:"hoy",ui:{},work:null,workDate:null,gi:0,
-  progEx:null,openS:null,summary:null,expandDay:null,pickOpen:false,swapOpen:null,editSetsFor:null,
+  progEx:null,openS:null,summary:null,expandDay:null,pickOpen:false,swapOpen:null,swapAll:false,editSetsFor:null,
   groupId:null,groupBoard:null,groupBusy:false,showTips:false,big:false,bigSi:0,
   timer:{total:90,left:90,run:false,iv:null,endAt:0}};
 var pending=null;
@@ -374,15 +374,22 @@ function rGuiada(){
   if(meta){
     var alts=alternativas(x.key);
     if(S.swapOpen===i&&alts.length){
-      h+='<div class="card slidedown-in"><p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
+      /* ley de Hick: si hay más de 5 alternativas, mostrar solo 5 y un
+         "ver más" en vez de tirar las 7-8 opciones juntas de una */
+      var ALT_CAP=5;
+      var shownAlts=S.swapAll?alts:alts.slice(0,ALT_CAP);
+      h+='<div class="card slidedown-in"><p style="font-size:var(--fs-2);color:var(--ink-soft);margin:0 0 10px">'+
          (meta.home?'¿Querés cambiarlo? Elegí otro de ':'¿Ocupada la máquina? Elegí otro de ')+
          esc((GRUPOS[meta.g]||meta.g).toLowerCase())+':</p>';
-      alts.forEach(function(k){
+      shownAlts.forEach(function(k){
         var am=EXDB[k];
         h+='<button class="altrow" data-a="do-swap" data-x="'+i+'" data-k="'+k+'">'+
            (am.img?'<img src="'+am.img[am.img.length-1]+'" alt="">':'<span class="altrow-ph" aria-hidden="true"></span>')+
            '<span>'+esc(am.n)+'</span></button>';
       });
+      if(!S.swapAll&&alts.length>ALT_CAP){
+        h+='<button class="btn ghost sm" data-a="swap-more" style="width:100%;margin-top:4px">ver '+(alts.length-ALT_CAP)+' más</button>';
+      }
       h+='<div style="margin-top:8px"><button class="btn ghost sm" data-a="swap-close">Cancelar</button></div></div>';
     }else if(alts.length){
       h+='<button class="swapbtn" data-a="swap-open" data-x="'+i+'">'+I_SWAP+' cambiar por otro de '+esc((GRUPOS[meta.g]||meta.g).toLowerCase())+'</button>';
@@ -974,8 +981,9 @@ document.addEventListener("click",function(ev){
     curEx.sets.push({w:noWeightKey(curEx.key)?"0":"",r:""});
     render();saveDraft()
   }
-  else if(a==="swap-open"){S.swapOpen=parseInt(x,10);render()}
-  else if(a==="swap-close"){S.swapOpen=null;render()}
+  else if(a==="swap-open"){S.swapOpen=parseInt(x,10);S.swapAll=false;render()}
+  else if(a==="swap-close"){S.swapOpen=null;S.swapAll=false;render()}
+  else if(a==="swap-more"){S.swapAll=true;render()}
   else if(a==="do-swap"){
     var k=t.getAttribute("data-k"), xi=parseInt(x,10), cur=S.work.ex[xi];
     var nuevo=EXDB[k]; if(!nuevo)return;
@@ -986,7 +994,7 @@ document.addEventListener("click",function(ev){
     cur.prevSets=prevSets||null;
     var newNoW=noWeightKey(k);
     cur.sets.forEach(function(z){z.w=newNoW?"0":"";z.r=""});   // los pesos del otro ejercicio no sirven
-    S.swapOpen=null;render();saveDraft();
+    S.swapOpen=null;S.swapAll=false;render();saveDraft();
     try{window.scrollTo(0,0)}catch(e){}
   }
   else if(a==="unswap"){
