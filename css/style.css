@@ -379,15 +379,25 @@
 .gv-n{font-family:var(--mono);font-size:var(--fs-1);color:var(--ink-soft);width:58px;text-align:right;flex-shrink:0}
 
 /* auth screen */
-.auth-screen{position:fixed;inset:0;z-index:100;background:var(--paper);display:flex;
+.auth-screen{position:fixed;inset:0;z-index:100;background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:22px 22px;display:flex;
   align-items:center;justify-content:center;padding:var(--space-4)}
 .auth-screen.hidden{display:none}
-.auth-card{width:100%;max-width:340px;text-align:center}
+.auth-card{width:100%;max-width:340px;text-align:center;background:var(--card);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-lg);padding:var(--space-5) var(--space-4);border:1px solid rgba(32,40,31,.06)}
+.auth-badge{width:56px;height:56px;margin:0 auto var(--space-3);border-radius:var(--radius-md);
+  background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
 .auth-card h1{font-family:var(--display);font-size:var(--fs-hero-1);color:var(--accent-deep);margin:0 0 var(--space-1)}
 .auth-card .tag{font-size:var(--fs-2);color:var(--ink-soft);margin:0 0 var(--space-4)}
+.auth-features{list-style:none;margin:0 0 var(--space-4);padding:0;text-align:left;display:flex;flex-direction:column;gap:var(--space-2)}
+.auth-features li{display:flex;align-items:center;gap:var(--space-2);font-size:var(--fs-2);color:var(--ink)}
+.auth-feat-ico{flex-shrink:0;width:28px;height:28px;border-radius:var(--radius-sm);background:var(--accent-soft);
+  display:flex;align-items:center;justify-content:center;font-size:var(--fs-3);font-style:normal}
 .auth-card .btn{margin-top:var(--space-1)}
 .btn.google{background:var(--field);color:var(--ink);border:1.5px solid rgba(32,40,31,.15)}
 .auth-msg{font-size:var(--fs-2);min-height:18px;margin:var(--space-2) 0 var(--space-1);color:var(--ink-soft)}
+.auth-privacy{font-size:var(--fs-1);color:var(--ink-faint);margin:var(--space-2) 0 0;line-height:1.4}
 .inapp-warn{display:none;font-size:var(--fs-2);line-height:1.5;color:var(--rust);background:var(--rust-soft);
   border-radius:var(--radius-md);padding:var(--space-2) var(--space-3);margin:0 0 var(--space-3);text-align:left}
 .inapp-warn.show{display:block}
