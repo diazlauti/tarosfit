@@ -902,6 +902,18 @@ function groupTeaser(){
       'Comparate con amigos: racha, entrenamientos de la semana y tus mejores marcas.</p>'+
       '<button class="btn sm ghost" data-a="settings-open-group">Crear o unirme a un grupo</button></div>';
   }
+  if(S.groupBusy&&!S.groupBoard){
+    return '<div class="card" style="margin-bottom:12px">'+
+      '<p class="sr-only" role="status" aria-live="polite">Cargando tu grupo…</p>'+
+      '<div class="skeleton" style="height:13px;width:50%;border-radius:4px;margin-bottom:10px" aria-hidden="true"></div>'+
+      '<div class="skeleton" style="height:13px;width:70%;border-radius:4px;margin-bottom:6px" aria-hidden="true"></div>'+
+      '<div class="skeleton" style="height:11px;width:40%;border-radius:4px" aria-hidden="true"></div></div>';
+  }
+  if(S.groupError){
+    return '<div class="card" style="margin-bottom:12px">'+
+      '<p role="alert" style="font-size:12.5px;color:var(--rust);margin:0">No se pudo cargar tu grupo. '+
+      '<button class="linkbtn" data-a="group-refresh" style="color:var(--rust)">Reintentar</button></p></div>';
+  }
   if(!S.groupBoard||!S.groupBoard.length)return '';
   var h='<div class="card" style="margin-bottom:12px">'+
     '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'+
@@ -970,9 +982,32 @@ function rGrupo(){
 }
 
 /* ---------- modal ---------- */
-function ask(t,x,fn){el("mtitle").textContent=t;el("mtext").textContent=x;pending=fn;el("modal").classList.add("on")}
-el("mno").onclick=function(){pending=null;el("modal").classList.remove("on")};
-el("myes").onclick=function(){var f=pending;pending=null;el("modal").classList.remove("on");if(f)f()};
+/* foco atrapado en el diálogo mientras está abierto: todo lo demás en
+   app-root (menos el modal mismo) se marca inert, así Tab no se escapa
+   a la pantalla de atrás. Al cerrar, el foco vuelve a quien lo abrió. */
+var modalTrigger=null;
+function setBackgroundInert(on){
+  var ar=el("app-root");if(!ar)return;
+  Array.prototype.forEach.call(ar.children,function(ch){
+    if(ch.id==="modal")return;
+    if(on)ch.setAttribute("inert","");else ch.removeAttribute("inert");
+  });
+}
+function ask(t,x,fn){
+  el("mtitle").textContent=t;el("mtext").textContent=x;pending=fn;
+  modalTrigger=document.activeElement;
+  el("modal").classList.add("on");
+  setBackgroundInert(true);
+  el("mno").focus();
+}
+function closeModal(){
+  el("modal").classList.remove("on");
+  setBackgroundInert(false);
+  if(modalTrigger&&modalTrigger.focus)modalTrigger.focus();
+  modalTrigger=null;
+}
+el("mno").onclick=function(){pending=null;closeModal()};
+el("myes").onclick=function(){var f=pending;pending=null;closeModal();if(f)f()};
 
 /* ---------- clicks ---------- */
 document.addEventListener("click",function(ev){
