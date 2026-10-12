@@ -16,8 +16,11 @@
     --skel-shine:rgba(255,255,255,.7);
     /* escala de espaciado 4/8/16/24/32 */
     --space-1:4px; --space-2:8px; --space-3:16px; --space-4:24px; --space-5:32px;
-    /* escala de radios */
-    --radius-sm:8px; --radius-md:12px; --radius-lg:18px;
+    /* escala de radios. "xs" es aparte de la escala principal: es para
+       elementos chiquitos tipo píxel (celda del mapa de calor, confetti)
+       donde sm(8px) se ve directamente como un círculo en vez de una
+       esquina apenas redondeada */
+    --radius-xs:3px; --radius-sm:8px; --radius-md:12px; --radius-lg:18px;
     /* escala tipográfica de 5 pasos (texto de interfaz) */
     --fs-1:10.5px; --fs-2:12.5px; --fs-3:15px; --fs-4:21px; --fs-5:25px;
     /* números/títulos "hero": más grandes que la escala de arriba a propósito
@@ -71,10 +74,10 @@
   .gflip{animation:flipin .5s cubic-bezier(.2,.8,.2,1) both;transform-origin:left center}
   .slidedown-in{animation:slidedown .32s cubic-bezier(.2,.8,.2,1) both}
   .stamp-badge{display:inline-block;font-family:var(--mono);font-weight:700;letter-spacing:.14em;
-    text-transform:uppercase;color:var(--rust);border:3px double var(--rust);border-radius:var(--radius-sm);
+    text-transform:uppercase;color:var(--rust);border:3px double var(--rust);border-radius:var(--radius-xs);
     padding:var(--space-2) var(--space-2);background:var(--rust-soft);animation:stamp .55s cubic-bezier(.2,.9,.2,1) both}
   .confetti-wrap{position:relative;height:0}
-  .confetti-bit{position:absolute;left:50%;top:0;width:7px;height:7px;border-radius:var(--radius-sm);
+  .confetti-bit{position:absolute;left:50%;top:0;width:7px;height:7px;border-radius:var(--radius-xs);
     animation:burst .85s cubic-bezier(.2,.7,.3,1) both}
   .strike-ok{position:absolute;left:10px;top:50%;height:12px;width:calc(100% - 60px);
     pointer-events:none;overflow:visible;transform:translateY(-50%)}
@@ -356,7 +359,7 @@
 .heat-count{font-family:var(--mono);font-size:var(--fs-1);color:var(--ink-soft)}
 .heat-grid{display:flex;gap:var(--space-1);margin-top:var(--space-3)}
 .heat-col{display:flex;flex-direction:column;gap:var(--space-1);flex:1}
-.heat-cell{aspect-ratio:1;border-radius:var(--radius-sm);background:var(--line)}
+.heat-cell{aspect-ratio:1;border-radius:var(--radius-xs);background:var(--line)}
 .heat-1{background:var(--accent-soft)}
 .heat-2{background:var(--heat-2)}
 .heat-3{background:var(--heat-3)}
