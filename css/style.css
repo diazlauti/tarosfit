@@ -1,7 +1,10 @@
 :root{
-    /* paleta base (nombres históricos de la app) */
-    --paper:#EFF2ED; --card:#FBFAF6; --ink:#20281F; --ink-soft:#5B6459; --ink-faint:#6E7A6C;
-    --accent:#3F6B4F; --accent-deep:#2C4D37; --accent-soft:#DCE7DE; --rust:#B54A2E; --rust-soft:#F3E1DA;
+    /* paleta base (nombres históricos de la app). ink-faint y rust están
+       afinados un toque más oscuros que el diseño original: con los tonos
+       de antes, su texto normal daba 3.99-4.31:1 contra el fondo, por
+       debajo del 4.5:1 que pide WCAG para texto que no es "grande" */
+    --paper:#EFF2ED; --card:#FBFAF6; --ink:#20281F; --ink-soft:#5B6459; --ink-faint:#667164;
+    --accent:#3F6B4F; --accent-deep:#2C4D37; --accent-soft:#DCE7DE; --rust:#AC462C; --rust-soft:#F3E1DA;
     --heat-2:#9DBBA5; --heat-3:#5D8B6B;
     --line:rgba(32,40,31,.12); --grid:rgba(63,107,79,.10);
     --field:#fff;
@@ -301,7 +304,7 @@
 
 @media(prefers-color-scheme:dark){
   :root{
-    --paper:#171B16; --card:#20251E; --field:#242A22; --ink:#E9EDE6; --ink-soft:#A9B3A3; --ink-faint:#7E8A79;
+    --paper:#171B16; --card:#20251E; --field:#242A22; --ink:#E9EDE6; --ink-soft:#A9B3A3; --ink-faint:#828E7D;
     --accent:#5FBE84; --accent-deep:#8FDCA9; --accent-soft:#26362A; --rust:#E08F6C; --rust-soft:#3A2820;
     --line:rgba(255,255,255,.12); --grid:rgba(95,190,132,.08);
     --bg:var(--paper); --surface:var(--card); --text:var(--ink); --text-muted:var(--ink-soft); --danger:var(--rust);
