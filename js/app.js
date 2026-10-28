@@ -133,7 +133,7 @@ function saveSess(){return Store.set("gym-sessions",S.sessions)}
 var DRAFT_MAX_AGE=8*60*60*1000;
 function saveDraft(){clearTimeout(saveDraft._t);saveDraft._t=setTimeout(function(){
   if(S.work)Store.set("gym-draft",{dayId:S.work.dayId,dayName:S.work.dayName,date:S.work.date,
-    ex:S.work.ex,gi:S.gi,savedAt:new Date().toISOString()});},600)}
+    ex:S.work.ex,avoided:S.work.avoided||[],gi:S.gi,savedAt:new Date().toISOString()});},600)}
 function clearDraft(){clearTimeout(saveDraft._t);Store.set("gym-draft",null)}
 
 /* ---------- datos derivados ---------- */
@@ -379,7 +379,12 @@ function rGuiada(){
 
   if(meta){
     var usedInDay=S.work.ex.map(function(e){return e.key});
-    var alts=alternativas(x.key).filter(function(k){return usedInDay.indexOf(k)===-1});
+    var avoided=S.work.avoided||[];
+    var optsNow=alternativas(x.key).filter(function(k){return usedInDay.indexOf(k)===-1});
+    /* si ya descartaste esos ejercicios hoy (ocupados, etc.) pero no queda
+       ningún otro, mejor sugerir igual que dejarte sin nada para elegir */
+    var safeOpts=optsNow.filter(function(k){return avoided.indexOf(k)===-1});
+    var alts=safeOpts.length?safeOpts:optsNow;
     if(S.swapOpen===i&&alts.length){
       /* ley de Hick: si hay más de 5 alternativas, mostrar solo 5 y un
          "ver más" en vez de tirar las 7-8 opciones juntas de una */
@@ -569,7 +574,7 @@ function startWork(){
       var arr=[];for(var i=0;i<n;i++)arr.push({w:noW?"0":"",r:""});
       return{key:x.key||null,name:nm,tSets:x.sets,tReps:x.reps,prevSets:prev||null,
         prev:prev?prev.map(function(s){return fmtSet(x.key,s)}).join("  "):null,sets:arr};
-    })};
+    }),avoided:[]};
   S.gi=0;render();saveDraft();
 }
 
@@ -1044,6 +1049,13 @@ document.addEventListener("click",function(ev){
     var nuevo=EXDB[k]; if(!nuevo)return;
     var prevSets=lastSetsFor(nuevo.n);
     cur.swapped=cur.swapped||cur.name;      // recordar el original
+    /* si veníamos de otro ejercicio (no es el primer cambio de este slot),
+       ese también queda descartado por hoy: no tiene sentido que otro
+       ejercicio te lo vuelva a sugerir si ya lo cambiaste por "ocupado" */
+    if(cur.key){
+      S.work.avoided=S.work.avoided||[];
+      if(S.work.avoided.indexOf(cur.key)===-1)S.work.avoided.push(cur.key);
+    }
     cur.key=k; cur.name=nuevo.n;
     cur.prev=prevSets?prevSets.map(function(z){return fmtSet(k,z)}).join("  "):null;
     cur.prevSets=prevSets||null;
@@ -1057,6 +1069,7 @@ document.addEventListener("click",function(ev){
     if(c2.swapped){
       var orig=c2.swapped, ok=null;
       for(var kk in EXDB){if(EXDB[kk].n===orig){ok=kk;break}}
+      if(S.work.avoided&&ok){var avi=S.work.avoided.indexOf(ok);if(avi>-1)S.work.avoided.splice(avi,1)}
       c2.key=ok;c2.name=orig;c2.swapped=null;
       var ps=lastSetsFor(orig);
       c2.prev=ps?ps.map(function(z){return fmtSet(ok,z)}).join("  "):null;
@@ -1377,7 +1390,7 @@ function boot(cloudHadData){
     if(dr&&dr.ex&&dr.ex.length&&dr.savedAt){
       var age=Date.now()-new Date(dr.savedAt).getTime();
       if(age>=0&&age<DRAFT_MAX_AGE){
-        S.work={dayId:dr.dayId,dayName:dr.dayName,date:dr.date||dr.savedAt,ex:dr.ex};
+        S.work={dayId:dr.dayId,dayName:dr.dayName,date:dr.date||dr.savedAt,ex:dr.ex,avoided:dr.avoided||[]};
         S.gi=typeof dr.gi==="number"?dr.gi:0;restored=true;
       }else clearDraft();
     }
