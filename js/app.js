@@ -29,7 +29,7 @@ var SEED=[
 var S={days:[],sessions:[],tab:"hoy",ui:{},work:null,workDate:null,gi:0,
   progEx:null,openS:null,summary:null,expandDay:null,pickOpen:false,swapOpen:null,swapAll:false,editSetsFor:null,
   groupId:null,groupBoard:null,groupBusy:false,groupError:false,cloudError:false,showTips:false,big:false,bigSi:0,
-  timer:{total:90,left:90,run:false,iv:null,endAt:0}};
+  timer:{total:90,left:90,run:false,iv:null,endAt:0,notifyTO:null}};
 var pending=null;
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
@@ -378,7 +378,8 @@ function rGuiada(){
   }
 
   if(meta){
-    var alts=alternativas(x.key);
+    var usedInDay=S.work.ex.map(function(e){return e.key});
+    var alts=alternativas(x.key).filter(function(k){return usedInDay.indexOf(k)===-1});
     if(S.swapOpen===i&&alts.length){
       /* ley de Hick: si hay más de 5 alternativas, mostrar solo 5 y un
          "ver más" en vez de tirar las 7-8 opciones juntas de una */
@@ -872,6 +873,8 @@ function rAjustes(){
       ' <button class="linkbtn" data-a="retry-cloud" style="color:var(--rust)">Reintentar</button></p>':'')+
     '<button class="btn sm ghost" data-a="signout">Cerrar sesión</button></div>';
 
+  h+=installCardHTML();
+
   h+='<div class="card" style="margin-top:12px">'+
     '<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">'+
     '¿Cambió algo (objetivo, días, molestias)? Podés armar una rutina nueva con el cuestionario.</p>'+
@@ -1186,6 +1189,11 @@ document.addEventListener("click",function(ev){
   else if(a==="import-open"){var fi=el("import-file");if(fi)fi.click()}
   else if(a==="signout"){firebase.auth().signOut().then(function(){location.reload()})}
   else if(a==="retry-cloud"){retryCloudSync()}
+  else if(a==="pwa-install"){
+    if(!deferredInstallPrompt)return;
+    var evp=deferredInstallPrompt;deferredInstallPrompt=null;
+    evp.prompt();render();
+  }
   else if(a==="ask-reset"){ask("Borrar todos los datos","Se elimina tu rutina y todo el historial de este teléfono y de tu cuenta en la nube. No se puede deshacer.",function(){
     S.days=[];S.sessions=[];S.work=null;S.summary=null;S.ui={};S.expandDay=null;
     saveDays();saveSess();clearDraft();render();toast("datos borrados")})}
@@ -1291,6 +1299,41 @@ function beep(){
     g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.6);o.start();o.stop(c.currentTime+.6)}}catch(e){}
   if(navigator.vibrate)try{navigator.vibrate([180,90,180])}catch(e){}
 }
+/* pedí el permiso recién cuando el usuario arranca un descanso de verdad
+   (gesto del usuario, y en el momento en que la función tiene sentido) */
+function ensureNotifyPermission(){
+  if("Notification" in window&&Notification.permission==="default"){
+    try{Notification.requestPermission()}catch(e){}
+  }
+}
+function clearRestNotification(){
+  if(S.timer.notifyTO){clearTimeout(S.timer.notifyTO);S.timer.notifyTO=null}
+}
+/* si la app queda en segundo plano (se bloquea la pantalla, se cambia de
+   app), el setInterval de tick() se frena y el beep() nunca suena: esto
+   programa un aviso del sistema en paralelo para ese caso. en foreground
+   no duplica el aviso (ya está el beep + vibración de tick()) */
+function scheduleRestNotification(){
+  clearRestNotification();
+  if(!("Notification" in window)||Notification.permission!=="granted")return;
+  if(!("serviceWorker" in navigator))return;
+  var ms=S.timer.endAt-Date.now();
+  if(ms<=0)return;
+  S.timer.notifyTO=setTimeout(function(){
+    S.timer.notifyTO=null;
+    if(!document.hidden)return;
+    navigator.serviceWorker.ready.then(function(reg){
+      reg.showNotification("Descanso terminado",{
+        body:"Volvé a la serie que sigue.",
+        icon:"img/icons/icon-192.png",
+        badge:"img/icons/icon-192.png",
+        vibrate:[180,90,180],
+        tag:"tarofits-rest",
+        renotify:true
+      });
+    }).catch(function(){});
+  },ms);
+}
 /* se calcula contra la hora real de fin: si se apaga la pantalla o el
    sistema frena el temporizador, al volver muestra el tiempo correcto */
 function tick(){
@@ -1304,17 +1347,19 @@ function startRest(secs){
   S.timer.endAt=Date.now()+secs*1000;
   S.timer.iv=setInterval(tick,250);
   el("tpanel").classList.add("on");tui();
+  ensureNotifyPermission();scheduleRestNotification();
 }
 var presets=document.querySelectorAll(".preset");
 for(var pi=0;pi<presets.length;pi++)(function(b){b.onclick=function(){
-  clearInterval(S.timer.iv);var s=parseInt(b.getAttribute("data-secs"),10);
+  clearInterval(S.timer.iv);clearRestNotification();var s=parseInt(b.getAttribute("data-secs"),10);
   S.timer.total=s;S.timer.left=s;S.timer.run=false;S.timer.endAt=0;tui()}})(presets[pi]);
 el("tgo").onclick=function(){
-  if(S.timer.run){clearInterval(S.timer.iv);S.timer.run=false}
+  if(S.timer.run){clearInterval(S.timer.iv);S.timer.run=false;clearRestNotification()}
   else{if(S.timer.left<=0)S.timer.left=S.timer.total;
-    S.timer.endAt=Date.now()+S.timer.left*1000;S.timer.run=true;S.timer.iv=setInterval(tick,250)}
+    S.timer.endAt=Date.now()+S.timer.left*1000;S.timer.run=true;S.timer.iv=setInterval(tick,250);
+    ensureNotifyPermission();scheduleRestNotification()}
   tui()};
-el("trs").onclick=function(){clearInterval(S.timer.iv);S.timer.run=false;S.timer.left=S.timer.total;S.timer.endAt=0;tui()};
+el("trs").onclick=function(){clearInterval(S.timer.iv);clearRestNotification();S.timer.run=false;S.timer.left=S.timer.total;S.timer.endAt=0;tui()};
 el("fab").onclick=function(){el("tpanel").classList.toggle("on")};
 
 /* ---------- arranque ---------- */
@@ -1369,5 +1414,30 @@ window.AppCloud={
   stop:function(){detachCloud()}
 };
 window.AppRoutines={apply:applyGeneratedDays};
+
+/* ---------- instalar como PWA ---------- */
+var deferredInstallPrompt=null;
+function isStandalone(){
+  return (window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||window.navigator.standalone===true;
+}
+function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent||"")}
+function installCardHTML(){
+  if(isStandalone())return "";
+  if(deferredInstallPrompt){
+    return '<div class="card" style="margin-top:12px">'+
+      '<p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 10px">Instalala en tu celu para abrirla como una app, con ícono propio y pantalla completa.</p>'+
+      '<button class="btn sm ghost" data-a="pwa-install">Instalar app</button></div>';
+  }
+  if(isIOS()){
+    return '<div class="card" style="margin-top:12px">'+
+      '<p style="font-size:12.5px;color:var(--ink-soft);margin:0">Para instalarla: tocá <strong>compartir</strong> (el ícono con la flecha hacia arriba) y elegí <strong>Agregar a la pantalla de inicio</strong>.</p></div>';
+  }
+  return "";
+}
+window.addEventListener("beforeinstallprompt",function(ev){
+  ev.preventDefault();deferredInstallPrompt=ev;
+  if(S.tab==="ajustes")render();
+});
+window.addEventListener("appinstalled",function(){deferredInstallPrompt=null;if(S.tab==="ajustes")render()});
 })();
 

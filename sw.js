@@ -1,6 +1,6 @@
 /* Service worker: deja la app usable en el gym sin señal.
    Sube CACHE_VERSION cuando cambies el HTML/CSS/JS para invalidar la caché vieja. */
-var CACHE_VERSION = "tarofits-v30";
+var CACHE_VERSION = "tarofits-v31";
 var APP_SHELL = [
   "./",
   "./index.html",
@@ -10,7 +10,10 @@ var APP_SHELL = [
   "./js/exercises.js",
   "./js/firebase-config.js",
   "./js/wizard.js",
-  "./manifest.json"
+  "./manifest.json",
+  "./img/icons/icon-180.png",
+  "./img/icons/icon-192.png",
+  "./img/icons/icon-512.png"
 ];
 
 self.addEventListener("install", function(ev){
@@ -44,6 +47,20 @@ self.addEventListener("fetch", function(ev){
         return res;
       }).catch(function(){ return cached; });
       return cached || network;
+    })
+  );
+});
+
+// avisa de que terminó el descanso aunque la app esté en segundo plano
+// (ver scheduleRestNotification en js/app.js); tocar el aviso enfoca la app
+self.addEventListener("notificationclick", function(ev){
+  ev.notification.close();
+  ev.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function(list){
+      for(var i=0;i<list.length;i++){
+        if("focus" in list[i])return list[i].focus();
+      }
+      if(self.clients.openWindow)return self.clients.openWindow("./");
     })
   );
 });
